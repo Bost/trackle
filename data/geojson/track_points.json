@@ -1,0 +1,15 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "track_fid": 0, "track_seg_id": 0, "track_seg_point_id": 0, "ele": 2376.000000, "time": "2007\/10\/14 10:09:57+00", "course": 0.000000, "speed": 0.000000, "magvar": 0.000000, "geoidheight": 0.000000, "name": "", "cmt": "", "desc": "", "src": "", "url": "", "urlname": "", "sym": "", "type": "", "fix": "", "sat": 0, "hdop": 0.000000, "vdop": 0.000000, "pdop": 0.000000, "ageofdgpsdata": 0.000000, "dgpsid": 0 }, "geometry": { "type": "Point", "coordinates": [ 9.181918, 48.782249 ] } }
+,
+{ "type": "Feature", "properties": { "track_fid": 0, "track_seg_id": 0, "track_seg_point_id": 1, "ele": 2376.000000, "time": "2007\/10\/14 10:09:57+00", "course": 0.000000, "speed": 0.000000, "magvar": 0.000000, "geoidheight": 0.000000, "name": "", "cmt": "", "desc": "", "src": "", "url": "", "urlname": "", "sym": "", "type": "", "fix": "", "sat": 0, "hdop": 0.000000, "vdop": 0.000000, "pdop": 0.000000, "ageofdgpsdata": 0.000000, "dgpsid": 0 }, "geometry": { "type": "Point", "coordinates": [ 9.181268, 48.781602 ] } }
+,
+{ "type": "Feature", "properties": { "track_fid": 0, "track_seg_id": 0, "track_seg_point_id": 2, "ele": 2376.000000, "time": "2007\/10\/14 10:09:57+00", "course": 0.000000, "speed": 0.000000, "magvar": 0.000000, "geoidheight": 0.000000, "name": "", "cmt": "", "desc": "", "src": "", "url": "", "urlname": "", "sym": "", "type": "", "fix": "", "sat": 0, "hdop": 0.000000, "vdop": 0.000000, "pdop": 0.000000, "ageofdgpsdata": 0.000000, "dgpsid": 0 }, "geometry": { "type": "Point", "coordinates": [ 9.179366, 48.782316 ] } }
+,
+{ "type": "Feature", "properties": { "track_fid": 0, "track_seg_id": 0, "track_seg_point_id": 3, "ele": 2376.000000, "time": "2007\/10\/14 10:09:57+00", "course": 0.000000, "speed": 0.000000, "magvar": 0.000000, "geoidheight": 0.000000, "name": "", "cmt": "", "desc": "", "src": "", "url": "", "urlname": "", "sym": "", "type": "", "fix": "", "sat": 0, "hdop": 0.000000, "vdop": 0.000000, "pdop": 0.000000, "ageofdgpsdata": 0.000000, "dgpsid": 0 }, "geometry": { "type": "Point", "coordinates": [ 9.178597, 48.781473 ] } }
+,
+{ "type": "Feature", "properties": { "track_fid": 0, "track_seg_id": 0, "track_seg_point_id": 4, "ele": 2376.000000, "time": "2007\/10\/14 10:09:57+00", "course": 0.000000, "speed": 0.000000, "magvar": 0.000000, "geoidheight": 0.000000, "name": "", "cmt": "", "desc": "", "src": "", "url": "", "urlname": "", "sym": "", "type": "", "fix": "", "sat": 0, "hdop": 0.000000, "vdop": 0.000000, "pdop": 0.000000, "ageofdgpsdata": 0.000000, "dgpsid": 0 }, "geometry": { "type": "Point", "coordinates": [ 9.177436, 48.780203 ] } }
+
+]
+}
