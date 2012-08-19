@@ -5,11 +5,5 @@ api_version: 1
 threadsafe: true
 
 handlers:
-- url: /js
-  static_dir: js
-
-- url: /data
-  static_dir: data
-
 - url: /.*
   script: helloworld.app
