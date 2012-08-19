@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "ele": 2372.000000, "time": "", "magvar": 0.000000, "geoidheight": 0.000000, "name": "LAGORETICO", "cmt": "", "desc": "", "src": "", "url": "", "urlname": "", "sym": "", "type": "", "fix": "", "sat": 0, "hdop": 0.000000, "vdop": 0.000000, "pdop": 0.000000, "ageofdgpsdata": 0.000000, "dgpsid": 0 }, "geometry": { "type": "Point", "coordinates": [ 9.181918, 48.782249 ] } }
+
+]
+}

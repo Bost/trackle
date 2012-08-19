@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "name": "Example gpx", "cmt": "", "desc": "", "src": "", "link1_href": "", "link1_text": "", "link1_type": "", "link2_href": "", "link2_text": "", "link2_type": "", "number": 1, "type": "" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 9.181918, 48.782249 ], [ 9.181268, 48.781602 ], [ 9.179366, 48.782316 ], [ 9.178597, 48.781473 ], [ 9.177436, 48.780203 ] ] ] } }
+
+]
+}
