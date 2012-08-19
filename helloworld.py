@@ -18,12 +18,12 @@ class MainPage(webapp2.RequestHandler):
 		 Using this hosted file will make sure we are kept up
 		 to date with any necessary changes -->
 	<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
-	<script type="text/javascript" src="./js/script.js"></script>
 
     <link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.11/theme/default/style.css" type="text/css">
     <link rel="stylesheet" href="http://dev.openlayers.org/releases/OpenLayers-2.11/examples/style.css" type="text/css">
     <script src="http://dev.openlayers.org/releases/OpenLayers-2.11/lib/OpenLayers.js"></script>
 
+	<script type="text/javascript" src="./js/script.js"></script>
 </head>
 <!-- body.onload is called once the page is loaded (call the 'init' function) -->
 <!--<body onload="init();JavaScript:timedRefresh(5000);">-->
