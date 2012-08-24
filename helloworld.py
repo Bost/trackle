@@ -4,7 +4,12 @@ import webapp2
 from time import sleep
 
 from google.appengine.api import users
+from google.appengine.ext import db
 
+class Position(db.Model):
+    lat = db.StringProperty()
+    lon = db.StringProperty(multiline=True)
+    time = db.DateTimeProperty(auto_now_add=True)
 
 global the_list
 the_list = [
@@ -37,6 +42,14 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         logging.info("length: %d" % (len(the_list) - 1))
         reset_cnt()
+
+        #trackUrl = "/data/runtastic_20120823_1715_MountainBiking.gpx"
+        #cntGpsPositions = "1"
+
+        trackUrl = "track"
+        cntGpsPositions = str(len(the_list) - 1)
+
+        style = "width:100%; height:100%"
         s = """
 <html>
 <head>
@@ -51,18 +64,13 @@ class MainPage(webapp2.RequestHandler):
 	<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
 	<script type="text/javascript" src="js/script.js"></script>
 </head>
-<!-- body.onload is called once the page is loaded (call the 'init' function) -->
-<body onload="init(
-"""
-        self.response.out.write(s)
-        self.response.out.write("%d" % (len(the_list) - 1))
-        s = """
-);">
+    <!-- body.onload is called once the page is loaded (call the 'init' function) -->
+    <body onload="init(%s, '%s');">
 	<!-- define a DIV into which the map will appear. Make it take up the whole window -->
-	<div style="width:90%; height:90%" id="map"></div>
+	<div style="%s" id="map"></div>
 </body>
 </html>
-"""
+""" % (cntGpsPositions, trackUrl, style)
         self.response.out.write(s)
 
 
@@ -91,7 +99,6 @@ class Track(webapp2.RequestHandler):
         #logging.info(s)
         self.response.out.write(s)
         inc_cnt()
-
 
 
 app = webapp2.WSGIApplication([('/', MainPage),

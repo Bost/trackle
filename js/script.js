@@ -6,12 +6,13 @@ var zoom=16
 
 var map; //complex object of type OpenLayers.Map
 
-function myFn() {
+function myFn(trackUrl) {
+    console.log("trackUrl: "+trackUrl)
     // Add the Layer with the GPX Track
     var lgpx = new OpenLayers.Layer.Vector("Lakeside cycle ride", {
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
-            url: "track",
+            url: trackUrl,
             format: new OpenLayers.Format.GPX()
         }),
         style: {strokeColor: "green", strokeWidth: 5, strokeOpacity: 0.7},
@@ -20,7 +21,7 @@ function myFn() {
     map.addLayer(lgpx);
 }
 
-function init(list_len) {
+function init(cntGpsPositions, trackUrl) {
     map = new OpenLayers.Map ("map", {
         controls:[
             new OpenLayers.Control.Navigation(),
@@ -59,10 +60,10 @@ function init(list_len) {
     var time_inc = 500   // in milisec
     var time = 0
 
-    for (var i = 0; i < list_len; i++) {
+    for (var i = 0; i < cntGpsPositions; i++) {
         time += time_inc
         setTimeout(
-            function() {myFn(i, time)},
+            function() {myFn(trackUrl)},
             time);
         //console.log("Cycle nr: " + i +"; time: "+time);
     }
