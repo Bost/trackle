@@ -3,6 +3,8 @@ import cgi
 import webapp2
 
 from google.appengine.ext import db
+from google.appengine.api import mail
+
 
 global positions
 positions = [    #lon, lat, time
@@ -174,6 +176,19 @@ class Track(webapp2.RequestHandler):
         inc_cnt()
 
 
+class Email(webapp2.RequestHandler):
+    def get(self):
+        message = mail.EmailMessage(sender="",
+                                    subject="App Engine sending email")
+        message.to = ""
+        message.body = """
+        Here come is the email body
+        """
+        message.send()
+        s = "<html><body>Email sent</body></head>"
+        self.response.out.write(s)
+
+
 app = webapp2.WSGIApplication(
-        [('/', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear)],
+        [('/', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear), ('/email', Email)],
         debug=True)
