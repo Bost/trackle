@@ -13,14 +13,15 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        upload_url = blobstore.create_upload_url('/upload')
+        #upload_url = blobstore.create_upload_url('/uploadHandler')
+        upload_url = '/gps'
         files = ""
         for b in blobstore.BlobInfo.all():
             files += "<li><a href=\"/serve/" + str(b.key()) + "\">" + str(b.filename) + "</a>"
 
         s = """
 <html><body>
-<form action="%s" method="POST" enctype="multipart/form-data">
+<form action="%s" method="GET" enctype="multipart/form-data">
     <div>
         Upload File:
         <input type="file" name="file">
@@ -37,30 +38,24 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
         upload_files = self.get_uploads('file')
         blob_info = upload_files[0]
-        self.redirect('/')
+        #self.redirect('/upload')
+        self.redirect('/gps')
 
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, blob_key):
         blob_key = str(urllib.unquote(blob_key))
+        s = ""
         if not blobstore.get(blob_key):
             self.error(404)
         else:
-            self.send_blob(blobstore.BlobInfo.get(blob_key), save_as=True)
-
-#def main():
-    #application = webapp.WSGIApplication(
-          #[('/', MainHandler),
-           #('/upload', UploadHandler),
-           #('/serve/([^/]+)?', ServeHandler),
-          #], debug=True)
-    #run_wsgi_app(application)
-
-#if __name__ == '__main__':
-  #main()
+            info = blobstore.BlobInfo.get(blob_key)
+            s = str(blobstore.get(blob_key))
+            self.send_blob(info, save_as=True)
+        logging.info("===: "+s)
 
 app = webapp2.WSGIApplication(
-          [('/', MainHandler),
-           ('/upload', UploadHandler),
+          [('/upload', MainHandler),
+           ('/uploadHandler', UploadHandler),
            ('/serve/([^/]+)?', ServeHandler),
           ], debug=True)
 

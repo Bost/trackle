@@ -12,5 +12,9 @@ handlers:
 - url: /js
   static_dir: js
 
+- url: /gps
+  script: gps.app
+
 - url: /.*
-  script: helloworld.app
+  script: upload.app
+

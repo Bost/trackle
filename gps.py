@@ -208,5 +208,8 @@ class UploadResponse(webapp2.RequestHandler):
         self.response.out.write(s)
 
 app = webapp2.WSGIApplication(
-        [('/', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear), ('/email', Email), ('/upload', Upload)],
+        [('/gps', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear), ('/email', Email)
+            #, ('/upload', Upload)
+            ],
         debug=True)
+
