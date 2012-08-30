@@ -62,7 +62,7 @@ class Clear(webapp2.RequestHandler):
         db.delete(entries)
 
         cnta = GeoLocation.all(keys_only=True).count()
-        s = "<html><body>"+str(cntb)+" entities deleted. New size: "+str(cnta)+"</body></head>"
+        s = "<html><body>"+str(cntb)+" entities deleted. New size: "+str(cnta)+"</body></head></html>"
         self.response.out.write(s)
 
 
@@ -73,7 +73,7 @@ class Show(webapp2.RequestHandler):
         for loc in locations:
             s = s + "<p>"+loc.latitude + ", " + loc.longitude +"</p>"
         count = GeoLocation.all(keys_only=True).count()
-        s = "<html><body>"+str(count)+" stored positions:</br>"+s+"</body></head>"
+        s = "<html><body>"+str(count)+" stored positions:</br>"+s+"</body></head></html>"
         self.response.out.write(s)
 
 
@@ -97,7 +97,7 @@ class Store(webapp2.RequestHandler):
                 s += "<p>"+str(cnt)+"; key: "+str(key)+"</p>"
 
         count = GeoLocation.all(keys_only=True).count()
-        s = "<html><body>"+str(count)+" rows stored."+s+"</body></head>"
+        s = "<html><body>"+str(count)+" rows stored."+s+"</body></head></html>"
         self.response.out.write(s)
 
 
@@ -186,10 +186,27 @@ class Email(webapp2.RequestHandler):
         Here come is the email body
         """
         message.send()
-        s = "<html><body>Email sent</body></head>"
+        s = "<html><body>Email sent</body></head></html>"
         self.response.out.write(s)
 
 
+class Upload(webapp2.RequestHandler):
+    def get(self):
+        s = """
+<html><body>
+<div><input type="file" name="userfile"/></div>
+<div><input type="submit" value="send"/></div>
+</body></head></html>
+"""
+        self.response.out.write(s)
+
+class UploadResponse(webapp2.RequestHandler):
+    def post(self):
+        c = self.request.get("content")
+        u = self.request.get("userfile")
+        s = "<html><body>"+s+"</body></head></html>"
+        self.response.out.write(s)
+
 app = webapp2.WSGIApplication(
-        [('/', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear), ('/email', Email)],
+        [('/', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear), ('/email', Email), ('/upload', Upload)],
         debug=True)
