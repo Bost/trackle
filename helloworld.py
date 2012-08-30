@@ -101,10 +101,11 @@ class Store(webapp2.RequestHandler):
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        trackUrl = "track"
+        #trackUrl = "track"
         cntGpsPositions = str(len(positions) - 1)
 
         #trackUrl = "/data/runtastic_20120823_1715_MountainBiking.gpx"
+        trackUrl = "/data/runtastic_20120829_1725_MountainBiking.gpx"
         #cntGpsPositions = "1"
 
         logging.info("length: "+cntGpsPositions)
