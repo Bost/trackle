@@ -1,14 +1,11 @@
+# -*- coding: utf-8 -*-
 from django.shortcuts import get_object_or_404, render_to_response
-from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
+from polls.models import Choice, Poll, Document
+from polls.forms import DocumentForm
 from django.template import RequestContext
-from polls.models import Choice, Poll
+from django.http import HttpResponseRedirect
 
-from django.template import Context, loader
-from polls.models import Poll
-from django.http import HttpResponse
-from django.http import Http404
-from django.template import RequestContext
 
 def vote(request, poll_id):
     p = get_object_or_404(Poll, pk=poll_id)
@@ -27,3 +24,27 @@ def vote(request, poll_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('poll_results', args=(p.id,)))
+
+
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('polls.views.list'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.all()
+
+    # Render list page with the documents and the form
+    return render_to_response(
+        'polls/list.html',
+        {'documents': documents, 'form': form},
+        context_instance=RequestContext(request)
+    )

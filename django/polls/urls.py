@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 from django.conf.urls import patterns, include, url
 from django.views.generic import DetailView, ListView
-from polls.models import Poll
+from polls.models import Poll, Document
 
 urlpatterns = patterns('',
     url(r'^$',
@@ -17,5 +18,8 @@ urlpatterns = patterns('',
             model=Poll,
             template_name='polls/results.html'),
         name='poll_results'),
+    url(r'^list/$', 
+        'polls.views.list', 
+        name='list'),
     url(r'^(?P<poll_id>\d+)/vote/$', 'polls.views.vote'),
 )

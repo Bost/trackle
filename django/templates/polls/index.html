@@ -1,5 +1,7 @@
 {% if latest_poll_list %}
-    something else
+
+    This is templates/polls/index.html
+
     <ul>
     {% for poll in latest_poll_list %}
         <li><a href="/polls/{{ poll.id }}/">{{ poll.question }}</a></li>

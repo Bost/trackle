@@ -19,15 +19,5 @@ class PollAdmin(admin.ModelAdmin):
     search_fields = ['question']
     date_hierarchy = 'pub_date'
 
-# something with 'doesn't bla blba bla' some other text
-#class PollAdmin(admin.ModelAdmin):
-#    fieldsets = [
-#        (None,               {'fields': ['question']}),
-#        ('Date information', {'fields': ['pub_date']}),
-#    ]
-
-#class PollAdmin(admin.ModelAdmin):
-#    fields = ['pub_date', 'question']
-
 admin.site.register(Poll, PollAdmin)
 admin.site.register(Choice)
