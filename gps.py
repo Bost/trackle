@@ -1,3 +1,6 @@
+from __future__ import with_statement
+from google.appengine.api import files
+
 import logging
 import cgi
 import webapp2
@@ -103,6 +106,35 @@ class Store(webapp2.RequestHandler):
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
+        filename = '/gs/data/my_file'
+        
+        params = {'date-created':'092011', 'owner':'Jon'}
+
+        #writable_file_name = files.gs.create(filename, mime_type='application/octet-stream', acl='public-read')
+
+        ## Open and write the file.
+        #with files.open(writable_file_name, 'a') as f:
+            #f.write('Hello World!')
+            #f.write('This is my first Google Cloud Storage object!')
+            #f.write('How exciting!')
+
+        ## Finalize the file.
+        #files.finalize(writable_file_name)
+
+        # Open and read the file.
+        logging.info('Opening file: '+filename)
+
+        sData = ""
+        with files.open(filename, 'r') as f:
+            data = f.read(1000)
+            sData += data
+            while data != "":
+                sData += data
+                #print data
+                data = f.read(1000)
+
+        fName = self.request.get("file")
+        logging.info("fName: "+fName)
         #trackUrl = "track"
         cntGpsPositions = str(len(positions) - 1)
 
@@ -134,7 +166,10 @@ class MainPage(webapp2.RequestHandler):
 	<div style="%s" id="map"></div>
 </body>
 </html>
-""" % (cntGpsPositions, trackUrl, style)
+<!--
+%s
+-->
+""" % (cntGpsPositions, trackUrl, style, sData)
         self.response.out.write(s)
 
 
@@ -208,8 +243,14 @@ class UploadResponse(webapp2.RequestHandler):
         self.response.out.write(s)
 
 app = webapp2.WSGIApplication(
-        [('/gps', MainPage), ('/track', Track), ('/store', Store), ('/show', Show), ('/clear', Clear), ('/email', Email)
-            #, ('/upload', Upload)
+        [
+            ('/gps', MainPage),
+            ('/track', Track),
+            ('/store', Store),
+            ('/show', Show),
+            ('/clear', Clear),
+            ('/email', Email)
+            ,('/upload', Upload),
             ],
         debug=True)
 
