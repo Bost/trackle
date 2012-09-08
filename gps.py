@@ -23,18 +23,11 @@ positions = [    #lon, lat, time
     [9.174969289402229, 48.77850433775755, "2007-10-14T10:09:57Z"],
 ]
 
-#from time import sleep
-
-#from google.appengine.api import users
-
-#class Position(db.Model):
-    #lat = db.StringProperty()
-    #lon = db.StringProperty(multiline=True)
-    #time = db.DateTimeProperty(auto_now_add=True)
-
-
 global globCnt
 globCnt = 0
+
+trackUrl = '/trackFromFile'
+#trackUrl = '/trackFromDBase'
 
 def inc_cnt():
     global globCnt    # this is needed to modify global copy of globvar
@@ -109,28 +102,10 @@ class MainPage(webapp2.RequestHandler):
         #resource = str(urllib.unquote(resource))
         #blob_info = blobstore.BlobInfo.get(resource)
 
-        filename = '/gs/data/my_file'
-        params = {'date-created':'092011', 'owner':'Jon'}
-        logging.info('Opening file: '+filename)
-
-        sData = ""
-        with files.open(filename, 'r') as f:
-            data = f.read(1000)
-            sData += data
-            logging.info("sData: "+sData)
-            while data != "":
-                #print data
-                data = f.read(1000)
-                sData += data
-
-        #logging.info("sData: "+sData)
-
-        trackUrl = "track"
-        #cntGpsPositions = str(len(positions) - 1)
-
         #trackUrl = "/data/runtastic_20120823_1715_MountainBiking.gpx"
         #trackUrl = "/data/runtastic_20120829_1725_MountainBiking.gpx"
         cntGpsPositions = "1"
+        #cntGpsPositions = str(len(positions) - 1)
 
         logging.info("length: "+cntGpsPositions)
         reset_cnt()
@@ -160,56 +135,59 @@ class MainPage(webapp2.RequestHandler):
         self.response.out.write(s)
 
 
-
-class Track(webapp2.RequestHandler):
+class TrackFromDBase(webapp2.RequestHandler):
     def get(self):
         global globCnt
         #logging.info("{} {}".format(positions[globCnt][1], positions[globCnt][0]) )
         #this select selects too many rows - i just use two of them
-        #locations = db.GqlQuery('SELECT * FROM GeoLocation ORDER BY date ASC')
+        locations = db.GqlQuery('SELECT * FROM GeoLocation ORDER BY date ASC')
 
-        #cnt = 0
-        #tags = ""
-        #for loc in locations:
-            #if cnt == globCnt or cnt == globCnt + 1:
-                #tags += "<trkpt lat=\""+loc.latitude+"\" lon=\""+ loc.longitude +"\">"
-                #tags += "<ele></ele><time>"+str(loc.date)+"</time></trkpt>"
-            #if cnt == globCnt:
-                #tags += "\n\t\t\t"
-            #cnt += 1
+        cnt = 0
+        tags = ""
+        for loc in locations:
+            if cnt == globCnt or cnt == globCnt + 1:
+                tags += "<trkpt lat=\""+loc.latitude+"\" lon=\""+loc.longitude+"\">"
+                tags += "<ele></ele><time>"+str(loc.date)+"</time></trkpt>"
+            if cnt == globCnt:
+                tags += "\n\t\t\t"
+            cnt += 1
 
-        #s = """
-#<?xml version="1.0" encoding="UTF-8"?>
-#<gpx version="1.0">
-	#<name>Example gpx</name>
-	#<wpt lat="48.78224865627344" lon="9.181918049511319">
-		#<ele>2372</ele>
-		#<name>LAGORETICO</name>
-	#</wpt>
-	#<trk>
-		#<name>Example gpx</name><number>1</number>
-		#<trkseg>
-			#%s
-		#</trkseg>
-	#</trk>
-#</gpx>
-#""" % (tags)
-        filename = '/gs/data/my_file'
+        s = """
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.0">
+    <name>Example gpx</name>
+    <wpt lat="48.78224865627344" lon="9.181918049511319">
+        <ele>2372</ele>
+        <name>LAGORETICO</name>
+    </wpt>
+    <trk>
+        <name>Example gpx</name><number>1</number>
+        <trkseg>
+            %s
+        </trkseg>
+    </trk>
+</gpx>
+""" % (tags)
+        #logging.info("s: "+s)
+        self.response.out.write(s)
+
+class TrackFromFile(webapp2.RequestHandler):
+    def get(self):
+        filename = '/gs/data/tmpfile'
         params = {'date-created':'092011', 'owner':'Jon'}
         logging.info('Opening file: '+filename)
 
-        s = ""
+        respData = ""
         with files.open(filename, 'r') as f:
             data = f.read(1000)
-            s += data
+            respData += data
             while data != "":
                 #print data
                 data = f.read(1000)
-                s += data
+                respData += data
 
-        #logging.info("s: "+s)
-        self.response.out.write(s)
-        inc_cnt()
+        #logging.info("respData: "+respData)
+        self.response.out.write(respData)
 
 
 class Email(webapp2.RequestHandler):
@@ -245,7 +223,8 @@ class UploadResponse(webapp2.RequestHandler):
 app = webapp2.WSGIApplication(
         [
             ('/gps', MainPage),
-            ('/track', Track),
+            (trackUrl, TrackFromFile),
+            #(trackUrl, TrackFromDBase),
             ('/store', Store),
             ('/show', Show),
             ('/clear', Clear),

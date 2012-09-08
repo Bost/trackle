@@ -12,10 +12,13 @@ handlers:
 - url: /js
   static_dir: js
 
+- url: /test
+  script: upload.app
+
 - url: /gps
   script: gps.app
 
-- url: /track
+- url: /track.*
   script: gps.app
 
 - url: /.*
