@@ -1,0 +1,20 @@
+<html>
+<head>
+	<title>Simple OSM GPX Track</title>
+	<!-- bring in the OpenLayers javascript library
+		 (here we bring it from the remote site, but you could
+		 easily serve up this javascript yourself) -->
+	<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+	<!-- bring in the OpenStreetMap OpenLayers layers.
+		 Using this hosted file will make sure we are kept up
+		 to date with any necessary changes -->
+	<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+	<script type="text/javascript" src="/js/script.js"></script>
+</head>
+	<!-- body.onload is called once the page is loaded (call the 'init' function) -->
+    <body onload="init({{ cntGpsPositions }}, '{{ gpxTrackUrl }}');">
+    <!-- define a DIV into which the map will appear. Make it take up the whole window -->
+    <div style="{{ style }}" id="map"></div>
+</body>
+</html>
+

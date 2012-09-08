@@ -1,0 +1,14 @@
+<html>
+    <body>
+        <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
+            Upload gpx file:<br/>
+            <input type="file" name="file"/><br/>
+            <input type="submit" name="submit" value="Submit"/>
+        </form>
+        {% for b in all_blobs %}
+        <li><a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a></li>
+        {% endfor %}
+    </body>
+</html>
+
+

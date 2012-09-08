@@ -4,9 +4,17 @@ from google.appengine.api import files
 import logging
 import cgi
 import webapp2
+import urllib
 
+from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.api import mail
+
+import jinja2
+import os
+
+jinja_environment = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
 
 global positions
@@ -26,8 +34,6 @@ positions = [    #lon, lat, time
 global globCnt
 globCnt = 0
 
-trackUrl = '/trackFromFile'
-#trackUrl = '/trackFromDBase'
 
 def inc_cnt():
     global globCnt    # this is needed to modify global copy of globvar
@@ -97,13 +103,15 @@ class Store(webapp2.RequestHandler):
         self.response.out.write(s)
 
 
-class MainPage(webapp2.RequestHandler):
-    def get(self):
-        #resource = str(urllib.unquote(resource))
-        #blob_info = blobstore.BlobInfo.get(resource)
+class MapLayer(webapp2.RequestHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        blob_key = blob_info.key()
 
-        #trackUrl = "/data/runtastic_20120823_1715_MountainBiking.gpx"
-        #trackUrl = "/data/runtastic_20120829_1725_MountainBiking.gpx"
+        gpxTrackUrl = '/gpxtrack/'+ str(blob_key)
+        logging.info('gpxTrackUrl: '+gpxTrackUrl)
+
         cntGpsPositions = "1"
         #cntGpsPositions = str(len(positions) - 1)
 
@@ -111,28 +119,14 @@ class MainPage(webapp2.RequestHandler):
         reset_cnt()
 
         style = "width:100%; height:100%"
-        s = """
-<html>
-<head>
-	<title>Simple OSM GPX Track</title>
-	<!-- bring in the OpenLayers javascript library
-		 (here we bring it from the remote site, but you could
-		 easily serve up this javascript yourself) -->
-	<script src="http://www.openlayers.org/api/OpenLayers.js"></script>
-	<!-- bring in the OpenStreetMap OpenLayers layers.
-		 Using this hosted file will make sure we are kept up
-		 to date with any necessary changes -->
-	<script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
-	<script type="text/javascript" src="js/script.js"></script>
-</head>
-	<!-- body.onload is called once the page is loaded (call the 'init' function) -->
-	<body onload="init(%s, '%s');">
-	<!-- define a DIV into which the map will appear. Make it take up the whole window -->
-	<div style="%s" id="map"></div>
-</body>
-</html>
-""" % (cntGpsPositions, trackUrl, style)
-        self.response.out.write(s)
+        templateVals = {
+            'cntGpsPositions' : cntGpsPositions,
+            'style' : style,
+            'gpxTrackUrl' : gpxTrackUrl,
+        }
+
+        template = jinja_environment.get_template('/templates/maplayer.html')
+        self.response.out.write(template.render(templateVals))
 
 
 class TrackFromDBase(webapp2.RequestHandler):
@@ -171,23 +165,17 @@ class TrackFromDBase(webapp2.RequestHandler):
         #logging.info("s: "+s)
         self.response.out.write(s)
 
-class TrackFromFile(webapp2.RequestHandler):
-    def get(self):
-        filename = '/gs/data/tmpfile'
-        params = {'date-created':'092011', 'owner':'Jon'}
-        logging.info('Opening file: '+filename)
-
-        respData = ""
-        with files.open(filename, 'r') as f:
-            data = f.read(1000)
-            respData += data
-            while data != "":
-                #print data
-                data = f.read(1000)
-                respData += data
-
-        #logging.info("respData: "+respData)
+# This class is called indirectly from javascript
+class GpxTrack(webapp2.RequestHandler):
+    def get(self, resource):
+        logging.info('GpxTrack {')
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        blob_key = blob_info.key()
+        blob_reader = blobstore.BlobReader(blob_key)
+        respData = blob_reader.read()
         self.response.out.write(respData)
+        logging.info('GpxTrack }')
 
 
 class Email(webapp2.RequestHandler):
@@ -203,33 +191,41 @@ class Email(webapp2.RequestHandler):
         self.response.out.write(s)
 
 
-class Upload(webapp2.RequestHandler):
-    def get(self):
-        s = """
-<html><body>
-<div><input type="file" name="userfile"/></div>
-<div><input type="submit" value="send"/></div>
-</body></head></html>
-"""
-        self.response.out.write(s)
 
-class UploadResponse(webapp2.RequestHandler):
-    def post(self):
-        c = self.request.get("content")
-        u = self.request.get("userfile")
-        s = "<html><body>"+s+"</body></head></html>"
-        self.response.out.write(s)
+class Templates(webapp2.RequestHandler):
+    def get(self):
+        guestbook_name=self.request.get('guestbook_name')
+        greetings_query = Greeting.all().ancestor(
+            guestbook_key(guestbook_name)).order('-date')
+        greetings = greetings_query.fetch(10)
+
+        if users.get_current_user():
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
+        templateVals = {
+            'greetings': greetings,
+            'url': url,
+            'url_linktext': url_linktext,
+        }
+
+        template = jinja_environment.get_template('index.html')
+        self.response.out.write(template.render(templateVals))
+
 
 app = webapp2.WSGIApplication(
         [
-            ('/gps', MainPage),
-            (trackUrl, TrackFromFile),
-            #(trackUrl, TrackFromDBase),
+            ('/maplayer/([^/]+)?', MapLayer),
+            ('/gpxtrack/([^/]+)?', GpxTrack),
             ('/store', Store),
             ('/show', Show),
             ('/clear', Clear),
-            ('/email', Email)
-            ,('/upload', Upload),
+            ('/email', Email),
+            ('/templates', Templates),
             ],
         debug=True)
+
 

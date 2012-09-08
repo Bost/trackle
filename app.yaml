@@ -5,23 +5,26 @@ runtime: python27
 api_version: 1
 threadsafe: true
 
-handlers:
-- url: /data
-  static_dir: data
+libraries:
+- name: jinja2
+  version: latest
 
+handlers:
 - url: /js
   static_dir: js
 
 - url: /test
   script: upload.app
 
-- url: /gps
+- url: /maplayer/.*
   script: gps.app
 
-- url: /track.*
+- url: /gpxtrack/.*
   script: gps.app
+
+- url: /servefile/.*
+  script: upload.app
 
 - url: /.*
   script: upload.app
-  #script: gps.app
 
