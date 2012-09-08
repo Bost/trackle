@@ -24,8 +24,7 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
   def post(self):
     upload_files = self.get_uploads('file')  # 'file' is file upload field in the form
     blob_info = upload_files[0]
-    #self.redirect('/serve/%s' % blob_info.key())
-    self.redirect('/gps')
+    self.redirect('/serve/%s' % blob_info.key())
 
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
   def get(self, resource):
@@ -43,6 +42,9 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     #self.send_blob(blob_info)
 
     filename = '/gs/data/my_file'
+    #ls = files.gs.listdir(filename)
+    #logging.info('-----------ls: '+ls)
+    #files.delete(filename)
     wFileName = files.gs.create(filename, mime_type='application/octet-stream', acl='public-read')
 
     with files.open(wFileName, 'a') as f:
@@ -50,7 +52,8 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
     files.finalize(wFileName)
 
-    self.response.out.write(sData)
+    #self.response.out.write(sData)
+    self.redirect('/gps')
 
 def main():
     return webapp2.WSGIApplication([
