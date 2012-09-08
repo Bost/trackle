@@ -106,41 +106,30 @@ class Store(webapp2.RequestHandler):
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
+        #resource = str(urllib.unquote(resource))
+        #blob_info = blobstore.BlobInfo.get(resource)
+
         filename = '/gs/data/my_file'
-        
         params = {'date-created':'092011', 'owner':'Jon'}
-
-        #writable_file_name = files.gs.create(filename, mime_type='application/octet-stream', acl='public-read')
-
-        ## Open and write the file.
-        #with files.open(writable_file_name, 'a') as f:
-            #f.write('Hello World!')
-            #f.write('This is my first Google Cloud Storage object!')
-            #f.write('How exciting!')
-
-        ## Finalize the file.
-        #files.finalize(writable_file_name)
-
-        # Open and read the file.
         logging.info('Opening file: '+filename)
 
-        sData = ""
+        s = ""
         with files.open(filename, 'r') as f:
             data = f.read(1000)
-            sData += data
+            s += data
             while data != "":
-                sData += data
                 #print data
                 data = f.read(1000)
+                s += data
 
-        fName = self.request.get("file")
-        logging.info("fName: "+fName)
-        #trackUrl = "track"
-        cntGpsPositions = str(len(positions) - 1)
+        logging.info("s: "+s)
+
+        trackUrl = "track"
+        #cntGpsPositions = str(len(positions) - 1)
 
         #trackUrl = "/data/runtastic_20120823_1715_MountainBiking.gpx"
-        trackUrl = "/data/runtastic_20120829_1725_MountainBiking.gpx"
-        #cntGpsPositions = "1"
+        #trackUrl = "/data/runtastic_20120829_1725_MountainBiking.gpx"
+        cntGpsPositions = "1"
 
         logging.info("length: "+cntGpsPositions)
         reset_cnt()
@@ -169,7 +158,7 @@ class MainPage(webapp2.RequestHandler):
 <!--
 %s
 -->
-""" % (cntGpsPositions, trackUrl, style, sData)
+""" % (cntGpsPositions, trackUrl, style, s)
         self.response.out.write(s)
 
 
@@ -179,34 +168,49 @@ class Track(webapp2.RequestHandler):
         global globCnt
         #logging.info("{} {}".format(positions[globCnt][1], positions[globCnt][0]) )
         #this select selects too many rows - i just use two of them
-        locations = db.GqlQuery('SELECT * FROM GeoLocation ORDER BY date ASC')
+        #locations = db.GqlQuery('SELECT * FROM GeoLocation ORDER BY date ASC')
 
-        cnt = 0
-        tags = ""
-        for loc in locations:
-            if cnt == globCnt or cnt == globCnt + 1:
-                tags += "<trkpt lat=\""+loc.latitude+"\" lon=\""+ loc.longitude +"\">"
-                tags += "<ele></ele><time>"+str(loc.date)+"</time></trkpt>"
-            if cnt == globCnt:
-                tags += "\n\t\t\t"
-            cnt += 1
+        #cnt = 0
+        #tags = ""
+        #for loc in locations:
+            #if cnt == globCnt or cnt == globCnt + 1:
+                #tags += "<trkpt lat=\""+loc.latitude+"\" lon=\""+ loc.longitude +"\">"
+                #tags += "<ele></ele><time>"+str(loc.date)+"</time></trkpt>"
+            #if cnt == globCnt:
+                #tags += "\n\t\t\t"
+            #cnt += 1
 
-        s = """
-<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.0">
-	<name>Example gpx</name>
-	<wpt lat="48.78224865627344" lon="9.181918049511319">
-		<ele>2372</ele>
-		<name>LAGORETICO</name>
-	</wpt>
-	<trk>
-		<name>Example gpx</name><number>1</number>
-		<trkseg>
-			%s
-		</trkseg>
-	</trk>
-</gpx>
-""" % (tags)
+        #s = """
+#<?xml version="1.0" encoding="UTF-8"?>
+#<gpx version="1.0">
+	#<name>Example gpx</name>
+	#<wpt lat="48.78224865627344" lon="9.181918049511319">
+		#<ele>2372</ele>
+		#<name>LAGORETICO</name>
+	#</wpt>
+	#<trk>
+		#<name>Example gpx</name><number>1</number>
+		#<trkseg>
+			#%s
+		#</trkseg>
+	#</trk>
+#</gpx>
+#""" % (tags)
+        filename = '/gs/data/my_file'
+        params = {'date-created':'092011', 'owner':'Jon'}
+        logging.info('Opening file: '+filename)
+
+        s = ""
+        with files.open(filename, 'r') as f:
+            data = f.read(1000)
+            s += data
+            while data != "":
+                #print data
+                data = f.read(1000)
+                s += data
+
+        logging.info("s: "+s)
+
         logging.info(s)
         self.response.out.write(s)
         inc_cnt()

@@ -6,15 +6,19 @@ api_version: 1
 threadsafe: true
 
 handlers:
-#- url: /data
-  #static_dir: data
+- url: /data
+  static_dir: data
 
-#- url: /js
-  #static_dir: js
+- url: /js
+  static_dir: js
 
-#- url: /gps
-  #script: gps.app
+- url: /gps
+  script: gps.app
+
+- url: /track
+  script: gps.app
 
 - url: /.*
-  script: upload.app
+  #script: upload.app
+  script: gps.app
 

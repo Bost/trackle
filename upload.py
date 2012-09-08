@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 #
+from __future__ import with_statement
+from google.appengine.api import files
 
 import os
 import urllib
@@ -38,12 +40,22 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     sData = ""
     sData += value
     #self.send_blob(blob_info)
+
+    filename = '/gs/data/my_file'
+    wFileName = files.gs.create(filename, mime_type='application/octet-stream', acl='public-read')
+
+    with files.open(wFileName, 'a') as f:
+        f.write(sData)
+
+    files.finalize(wFileName)
+
     self.response.out.write(sData)
 
 def main():
   application = webapp.WSGIApplication(
     [('/', MainHandler),
      ('/upload', UploadHandler),
+     #('/track/([^/]+)?', Track),
      ('/serve/([^/]+)?', ServeHandler),
     ], debug=True)
   run_wsgi_app(application)
@@ -87,16 +99,16 @@ app = webapp2.WSGIApplication(
         
         ##params = {'date-created':'092011', 'owner':'Jon'}
 
-        ##writable_file_name = files.gs.create(filename, mime_type='application/octet-stream', acl='public-read')
+        ##wFileName = files.gs.create(filename, mime_type='application/octet-stream', acl='public-read')
 
         ### Open and write the file.
-        ##with files.open(writable_file_name, 'a') as f:
+        ##with files.open(wFileName, 'a') as f:
             ##f.write('Hello World!')
             ##f.write('This is my first Google Cloud Storage object!')
             ##f.write('How exciting!')
 
         ### Finalize the file.
-        ##files.finalize(writable_file_name)
+        ##files.finalize(wFileName)
 
         ## Open and read the file.
         ##logging.info('Opening file: '+filename)
