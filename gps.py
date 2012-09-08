@@ -113,16 +113,17 @@ class MainPage(webapp2.RequestHandler):
         params = {'date-created':'092011', 'owner':'Jon'}
         logging.info('Opening file: '+filename)
 
-        s = ""
+        sData = ""
         with files.open(filename, 'r') as f:
             data = f.read(1000)
-            s += data
+            sData += data
+            logging.info("sData: "+sData)
             while data != "":
                 #print data
                 data = f.read(1000)
-                s += data
+                sData += data
 
-        logging.info("s: "+s)
+        #logging.info("sData: "+sData)
 
         trackUrl = "track"
         #cntGpsPositions = str(len(positions) - 1)
@@ -155,10 +156,7 @@ class MainPage(webapp2.RequestHandler):
 	<div style="%s" id="map"></div>
 </body>
 </html>
-<!--
-%s
--->
-""" % (cntGpsPositions, trackUrl, style, s)
+""" % (cntGpsPositions, trackUrl, style)
         self.response.out.write(s)
 
 
@@ -209,9 +207,7 @@ class Track(webapp2.RequestHandler):
                 data = f.read(1000)
                 s += data
 
-        logging.info("s: "+s)
-
-        logging.info(s)
+        #logging.info("s: "+s)
         self.response.out.write(s)
         inc_cnt()
 

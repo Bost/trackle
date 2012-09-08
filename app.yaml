@@ -19,6 +19,6 @@ handlers:
   script: gps.app
 
 - url: /.*
-  #script: upload.app
-  script: gps.app
+  script: upload.app
+  #script: gps.app
 
