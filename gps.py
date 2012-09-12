@@ -119,9 +119,15 @@ class MapLayer(webapp2.RequestHandler):
         reset_cnt()
 
         style = "width:100%; height:100%"
+        lon=9.181918049511319
+        lat=48.78224865627344
+        zoom=16
         templateVals = {
             'cntGpsPositions' : cntGpsPositions,
             'style' : style,
+            'lon' : lon,
+            'lat' : lat,
+            'zoom' : zoom,
             'gpxTrackUrl' : gpxTrackUrl,
         }
 
