@@ -35,10 +35,20 @@ class MainHandler(webapp2.RequestHandler):
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
             'url_maplayer' : 'maplayer',
+            'url_delete' : 'delete',
         }
 
         template = jinja_environment.get_template('/templates/uploadsite.html')
         self.response.out.write(template.render(templateVals))
+
+
+class Delete(webapp2.RequestHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        blob_key = blob_info.key()
+        blobstore.delete(blob_key)
+        self.redirect('/')
 
 
 class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
@@ -113,6 +123,7 @@ def main():
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
         ('/test', Test),
+        ('/delete/([^/]+)?', Delete),
         ('/upload_handler', UploadHandler),
         ('/servefile/([^/]+)?', ServeHandler),
         ], debug=True)

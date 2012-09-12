@@ -216,16 +216,21 @@ class Templates(webapp2.RequestHandler):
         self.response.out.write(template.render(templateVals))
 
 
-app = webapp2.WSGIApplication(
-        [
-            ('/maplayer/([^/]+)?', MapLayer),
-            ('/gpxtrack/([^/]+)?', GpxTrack),
-            ('/store', Store),
-            ('/show', Show),
-            ('/clear', Clear),
-            ('/email', Email),
-            ('/templates', Templates),
-            ],
-        debug=True)
+def main():
+    application = webapp2.WSGIApplication([
+        ('/maplayer/([^/]+)?', MapLayer),
+        ('/gpxtrack/([^/]+)?', GpxTrack),
+        ('/store', Store),
+        ('/show', Show),
+        ('/clear', Clear),
+        ('/email', Email),
+        ('/templates', Templates),
+        ], debug=True)
+    #run_wsgi_app(application)
+    return application
 
+if __name__ == '__main__':
+    main()
+
+app = main()
 

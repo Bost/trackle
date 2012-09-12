@@ -22,6 +22,9 @@ handlers:
 - url: /gpxtrack/.*
   script: gps.app
 
+- url: /delete/.*
+  script: upload.app
+
 - url: /servefile/.*
   script: upload.app
 

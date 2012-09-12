@@ -6,7 +6,9 @@
             <input type="submit" name="submit" value="Submit"/>
         </form>
         {% for b in all_blobs %}
-        <li><a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a></li>
+        <div>
+            <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a> <a href="/{{ url_delete }}/{{ b.key() }}">delete</a>
+        </div>
         {% endfor %}
     </body>
 </html>
