@@ -22,6 +22,7 @@ function myFn(trackUrl) {
 }
 
 function init(cntGpsPositions, trackUrl) {
+    console.log("trackUrl: "+trackUrl)
     map = new OpenLayers.Map ("map", {
         controls:[
             new OpenLayers.Control.Navigation(),
