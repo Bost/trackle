@@ -1,12 +1,16 @@
 <html>
     <body>
         <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
-            Upload gpx file:<br/>
-            <input type="file" name="file"/><br/>
-            <input type="submit" name="submit" value="Submit"/>
+            <div>Upload gpx file:</div>
+            <div>
+                <input type="file" name="file"/>
+                <input type="submit" name="submit" value="Submit"/>
+            </div>
         </form>
         {% for b in all_blobs %}
-        <li><a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a></li>
+        <div>
+            <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a> <a href="/{{ url_delete }}/{{ b.key() }}">delete</a>
+        </div>
         {% endfor %}
     </body>
 </html>

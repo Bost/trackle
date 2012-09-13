@@ -8,6 +8,7 @@ import urllib
 import webapp2
 
 from google.appengine.ext import blobstore
+from google.appengine.ext import db
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.webapp.util import run_wsgi_app
 
@@ -35,10 +36,20 @@ class MainHandler(webapp2.RequestHandler):
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
             'url_maplayer' : 'maplayer',
+            'url_delete' : 'delete',
         }
 
         template = jinja_environment.get_template('/templates/uploadsite.html')
         self.response.out.write(template.render(templateVals))
+
+
+class Delete(webapp2.RequestHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        blob_key = blob_info.key()
+        blobstore.delete(blob_key)
+        self.redirect('/')
 
 
 class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
@@ -55,11 +66,11 @@ class Test(blobstore_handlers.BlobstoreDownloadHandler):
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
         resource = str(urllib.unquote(resource))
-        
+
         if not blobstore.get(resource):
             self.error(404)
             return
-        
+
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
         #for b in blobstore.BlobInfo.all():
@@ -67,13 +78,15 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         blob_reader = blobstore.BlobReader(blob_key)
 
         inputText = blob_reader.read()
-        
+
         # TODO The gpx.xsd cannot be placed in a subdirectory - why?
         xsdText = getFileContent('gpx.xsd')
 
-        logging.info('XSD file read in')
+        logging.info('XSD file read in.')
 
         psviResult = ''
+        elemTree = ''
+        root = ''
         try:
             # use default values of minixsv, location of the schema file must
             # be specified in the XML file
@@ -84,6 +97,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
             # call validator with non-default values
             psviResult = elementTreeWrapper = pyxsval.parseAndValidateString(
+            #psviResult = pyxsval.parseAndValidateString(
                 inputText, xsdText,
                 #xmlIfClass= pyxsval.XMLIF_ELEMENTTREE,
                 #warningProc=pyxsval.PRINT_WARNINGS, 
@@ -91,28 +105,51 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                 #useCaching=0, processXInclude=0
                 )
 
+            #logging.info('done: ')
+            #elementTreeWrapper = psviResult
             # get elementtree object after validation
             #elemTree = elementTreeWrapper.getTree()
+            #root = elementTree.getTree()
 
         except pyxsval.XsvalError, errstr:
             print errstr
-            print "Validation aborted!"
+            logging.error("Validation aborted!")
  
         except GenXmlIfError, errstr:
             print errstr
-            print "Parsing aborted!"
+            logging.error("Parsing aborted!")
+
+        except db.Timeout, errstr:
+        #except (db.Timeout, db.InternalError):
+        #except datastore_errors.Timeout, errstr:
+            print errstr
+            logging.error('Timeout-specific error page')
 
         # redirect back to the upload page
         #self.redirect('/')
 
+        logging.info('elemTree: '+elemTree)
+        logging.info('root: '+root)
         # display the gpxtrack on the maplayer
         self.redirect('/maplayer/'+str(blob_key))
+
+    #def handle_exception(self, exception, debug_mode):
+        #if debug_mode:
+            #super(ServeHandler, self).handle_exception(exception, debug_mode)
+        #else:
+            #if isinstance(exception, datastore_errors.Timeout):
+                ## Display a timeout-specific error page
+                #logging.error('timeout-specific error page')
+            #else:
+                ## Display a generic 500 error page.
+                #logging.error('generic 500 error page')
 
 
 def main():
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
         ('/test', Test),
+        ('/delete/([^/]+)?', Delete),
         ('/upload_handler', UploadHandler),
         ('/servefile/([^/]+)?', ServeHandler),
         ], debug=True)

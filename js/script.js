@@ -1,15 +1,9 @@
-// Start position for the map (hardcoded here for simplicity,
-// but maybe you want to get this from the URL params)
-var lat=48.78224865627344
-var lon=9.181918049511319
-var zoom=16
-
 var map; //complex object of type OpenLayers.Map
 
 function myFn(trackUrl) {
     console.log("trackUrl: "+trackUrl)
     // Add the Layer with the GPX Track
-    var lgpx = new OpenLayers.Layer.Vector("Lakeside cycle ride", {
+    var lgpx = new OpenLayers.Layer.Vector("", {
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
             url: trackUrl,
@@ -21,7 +15,7 @@ function myFn(trackUrl) {
     map.addLayer(lgpx);
 }
 
-function init(cntGpsPositions, trackUrl) {
+function init(cntGpsPositions, lon, lat, zoom, trackUrl) {
     console.log("trackUrl: "+trackUrl)
     map = new OpenLayers.Map ("map", {
         controls:[
@@ -46,7 +40,9 @@ function init(cntGpsPositions, trackUrl) {
     layerMarkers = new OpenLayers.Layer.Markers("Markers");
     map.addLayer(layerMarkers);
 
-    var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+    var projection = new OpenLayers.Projection("EPSG:4326");
+    var projectionObj = map.getProjectionObject();
+    var lonLat = new OpenLayers.LonLat(lon, lat).transform(projection, projectionObj);
     map.setCenter(lonLat, zoom);
 
     var size = new OpenLayers.Size(21, 25);
