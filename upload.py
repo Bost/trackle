@@ -85,7 +85,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         logging.info('XSD file read in.')
 
         psviResult = ''
-        elemTree = ''
+        elementTree = ''
         root = ''
         try:
             # use default values of minixsv, location of the schema file must
@@ -106,10 +106,10 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                 )
 
             #logging.info('done: ')
-            #elementTreeWrapper = psviResult
+            elementTreeWrapper = psviResult
             # get elementtree object after validation
-            #elemTree = elementTreeWrapper.getTree()
-            #root = elementTree.getTree()
+            elementTree = elementTreeWrapper.getTree()
+            root = elementTreeWrapper.getRootNode()
 
         except pyxsval.XsvalError, errstr:
             print errstr
@@ -128,8 +128,41 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         # redirect back to the upload page
         #self.redirect('/')
 
-        logging.info('elemTree: '+elemTree)
-        logging.info('root: '+root)
+        logging.info('elementTree: '+str(elementTree))
+        #logging.info('---------------------- root: '+str(root))
+        #eleList = root.getXPath('trk')
+
+        #eleList = root.getElementsByTagName()
+        #logging.info('---- : '+ str(eleList))
+        #for ele in eleList:
+            #s = str(ele)
+            #logging.info('---- : '+ s)
+
+        rootChildren = root.getChildren()
+        for root_c in rootChildren:
+            s = root_c.getTagName()
+            logging.info('---- : '+ s)
+            if s == "trk":
+                trkChildren = root_c.getChildren()
+                for trk_c in trkChildren:
+                    s = trk_c.getTagName()
+                    #logging.info('---- ---- : '+ s)
+                    if s == "trkseg":
+                        trkseqChildren = trk_c.getChildren()
+                        for trkseq_c in trkseqChildren:
+                            #s = trkseq_c.getTagName()
+                            #logging.info('---- ---- ---- : '+ s)
+                            #lon = trkseq_c.getAttribute("lon")
+                            #lat = trkseq_c.getAttribute("lat")
+                            #logging.info('---- ---- ---- : '+ 'lon :'+lon + ' lat: '+lat)
+                            trkptChildren = trkseq_c.getChildren()
+                            for trkpt_c in trkptChildren:
+                                s = trkpt_c.getTagName()
+                                #logging.info('---- ---- ---- ---- : '+ s)
+                                if s == "ele":
+                                    ele_v = trkpt_c.getElementValue()
+                                    logging.info('---- ---- ---- ---- : '+ str(ele_v))
+
         # display the gpxtrack on the maplayer
         self.redirect('/maplayer/'+str(blob_key))
 
