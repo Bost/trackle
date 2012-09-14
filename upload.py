@@ -128,7 +128,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         # redirect back to the upload page
         #self.redirect('/')
 
-        logging.info('elementTree: '+str(elementTree))
+        #logging.info('elementTree: '+str(elementTree))
         #logging.info('---------------------- root: '+str(root))
         #eleList = root.getXPath('trk')
 
@@ -138,10 +138,11 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
             #s = str(ele)
             #logging.info('---- : '+ s)
 
+        elevations = []
         rootChildren = root.getChildren()
         for root_c in rootChildren:
             s = root_c.getTagName()
-            logging.info('---- : '+ s)
+            #logging.info('---- : '+ s)
             if s == "trk":
                 trkChildren = root_c.getChildren()
                 for trk_c in trkChildren:
@@ -161,7 +162,21 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                                 #logging.info('---- ---- ---- ---- : '+ s)
                                 if s == "ele":
                                     ele_v = trkpt_c.getElementValue()
-                                    logging.info('---- ---- ---- ---- : '+ str(ele_v))
+                                    #logging.info('---- ---- ---- ---- : '+ str(ele_v))
+                                    elevations.append(ele_v)
+
+
+        e_max = float(-999.0)
+        e_min = float(999.0)
+        for e in elevations:
+            fe = float(e)
+            if fe < e_min:
+                e_min = fe
+            if fe > e_max:
+                e_max = fe
+
+        logging.info('elevation.size: '+str(len(elevations)))
+        logging.info('e_max: '+ str(e_max)+'; e_min: '+ str(e_min))
 
         # display the gpxtrack on the maplayer
         self.redirect('/maplayer/'+str(blob_key))
