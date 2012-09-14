@@ -28,9 +28,6 @@ handlers:
 - url: /delete/.*
   script: upload.app
 
-- url: /test
-  script: upload.app
-
 - url: /servefile/.*
   script: upload.app
 

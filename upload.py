@@ -9,7 +9,7 @@ import jinja2
 
 from dateutil.relativedelta import *
 from dateutil.parser import *
-from datetime import *
+import datetime
 import commands
 
 from math import sqrt, cos, pi
@@ -32,10 +32,13 @@ vDuration = 'vDuration'
 vTimeStmpStart = 'vTimeStmpStart'
 vTimeStmpStop = 'vTimeStmpStop'
 vAllValues = 'vAllValues'
+vSpeedAvrg = 'vSpeedAvrg'
+vSpeedMax = 'vSpeedMax'
 
-distanceUnits = 'km'
-elevationUnits = 'm'
-speedUnits = 'km / h'
+distanceUnits = '[ km ]'
+elevationUnits = '[ m ]'
+speedUnits = '[ km/h ]'
+timeUnits = '[ hh:mm:ss ]'
 
 # Earth radius in kilometer
 R = 6371
@@ -48,10 +51,10 @@ class TrackDetails():
     file_name = undef
     timestamp = undef
     location = undef
-    avrg_speed = undef
+    speed_avrg = undef
     duration = undef
     distance = undef
-    top_speed = undef
+    speed_max = undef
     total_ascending = undef
     total_descending = undef
     elevation_gain = undef
@@ -84,7 +87,12 @@ class MainHandler(webapp2.RequestHandler):
 
 
 class Details(webapp2.RequestHandler):
+    def calcSpeed(self, distance, time):
+        return float(distance) / float(time)
+
     def deg2rad(self, degree):
+        """ GPS coordinates in the gpx files are in degrees, calculation are
+        made in radians """
         return (pi * float(degree) / 180.0)
 
     def getVal(self, blob_key, vType=1):
@@ -109,95 +117,118 @@ class Details(webapp2.RequestHandler):
             print errstr
             logging.error('Timeout-specific error page')
 
-        valStart = undef
-        valStop = undef
-        lon1 = undef
-        lat1 = undef
-        lon2 = undef
-        lat2 = undef
-        distance = 0
+        start = stop = valStop = undef
+        lon1 = lat1 = lon2 = lat2 = undef
+        time1 = time2 = undef
+        speedMax = undef
+        distanceTotal = 0
+        minElev = float(9999.0)
+        maxElev = float(-9999.0)
 
-        elevations = []
+        cntMeasurements = 0
+        speedSum = 0
+
         rootChildren = root.getChildren()
-        i = 0
         for root_c in rootChildren:
-            s = root_c.getTagName()
-            #logging.info('---- : '+ s)
-            if s == "trk":
+            tagName = root_c.getTagName()
+            if tagName == "trk":
                 trkChildren = root_c.getChildren()
                 for trk_c in trkChildren:
-                    s = trk_c.getTagName()
-                    #logging.info('---- ---- : '+ s)
-                    if s == "trkseg":
+                    tagName = trk_c.getTagName()
+                    if tagName == "trkseg":
                         trkseqChildren = trk_c.getChildren()
                         for trkseq_c in trkseqChildren:
-                            #s = trkseq_c.getTagName()
-                            #logging.info('---- ---- ---- : '+ s)
-                            lon1 = lon2
-                            lat1 = lat2
 
-                            lon_degree = float(trkseq_c.getAttribute("lon"))
-                            lon2 = self.deg2rad(lon_degree)
-                            #logging.info('lon_degree : '+ str(lon_degree)+'; lon2: '+str(lon2))
+                            # speed calculation implies distance and time calculation
+                            if vType == vDistance or vType == vSpeedAvrg or vType == vSpeedMax or vType == vAllValues:
+                                lon1 = lon2
+                                lon_degree = float(trkseq_c.getAttribute("lon"))
+                                lon2 = self.deg2rad(lon_degree)
 
-                            lat_degree = float(trkseq_c.getAttribute("lat"))
-                            lat2 = self.deg2rad(lat_degree)
-                            #logging.info('lat_degree : '+ str(lat_degree)+'; lat2: '+str(lat2))
+                                lat1 = lat2
+                                lat_degree = float(trkseq_c.getAttribute("lat"))
+                                lat2 = self.deg2rad(lat_degree)
 
-                            if (vType == vDistance or vType == vAllValues) and lon1 != undef and lat1 != undef:
-                                x = (lon2-lon1) * cos((lat1+lat2)/2)
-                                y = (lat2-lat1)
-                                d = sqrt(x*x + y*y) * R
-                                #logging.info('i:'+str(i)+'; d: '+str(d))
-                                #i += 1
-                                distance += d
+                                #logging.info('lon_degree: '+str(lon_degree)+'; lat_degree: '+str(lat_degree))
 
-                            #logging.info('---- ---- ---- : '+ 'lon :'+lon + ' lat: '+lat)
+                                if lon1 != undef and lon1 != undef:
+                                    x = (lon2-lon1) * cos((lat1+lat2)/2)
+                                    y = (lat2-lat1)
+                                    distanceDelta = sqrt(x*x + y*y) * R
+                                    distanceTotal += distanceDelta
+
                             trkptChildren = trkseq_c.getChildren()
                             for trkpt_c in trkptChildren:
-                                s = trkpt_c.getTagName()
-                                #logging.info('---- ---- ---- ---- : '+ s)
-                                if s == "ele":
-                                    ele_v = trkpt_c.getElementValue()
-                                    #logging.info('---- ---- ---- ---- : '+ str(ele_v))
-                                    elevations.append(ele_v)
-                                if s == "time":
-                                    if (vType == vDuration or vType == vAllValues):
-                                        time_v = trkpt_c.getElementValue()
-                                        if valStart == undef:
-                                            valStart = time_v
+                                tagName = trkpt_c.getTagName()
+
+                                if tagName == "ele":
+                                    if vType == vMaxElevation or vType == vAllValues:
+                                        ele_v = float(trkpt_c.getElementValue())
+                                        if ele_v > maxElev:
+                                            maxElev = ele_v
+
+                                    if vType == vMinElevation or vType == vAllValues:
+                                        ele_v = float(trkpt_c.getElementValue())
+                                        if ele_v < minElev:
+                                            minElev = ele_v
+
+                                elif tagName == "time":
+                                    if vType == vDuration or vType == vSpeedAvrg or vType == vSpeedMax or vType == vAllValues:
+                                        time1 = time2
+                                        time2 = parse(trkpt_c.getElementValue())
+
+                                        if time1 != undef and time2 != undef:
+                                            td = (time2 - time1)
+                                            minutes = (float(td.seconds) / 60)
+                                            timeDelta = float(minutes / 60.0)
+                                            if timeDelta == 0:
+                                                sLon = str(lon_degree)
+                                                sLat = str(lat_degree)
+                                                s = 'No current speed calculated: timeDelta == 0; [lon, lat]: [ '+sLon+', '+sLat+' ]'
+                                                logging.warning(s)
+                                            else:
+                                                speedCurrent = self.calcSpeed(distanceDelta, timeDelta)
+                                                #logging.info('current speed: '+str(speedCurrent))
+                                                speedSum += speedCurrent
+                                                cntMeasurements += 1
+                                                if speedCurrent > speedMax:
+                                                    speedMax = speedCurrent
+
+                                    if vType == vDuration or vType == vAllValues:
+                                        time = trkpt_c.getElementValue()
+                                        if start == undef:
+                                            start = parse(time)
                                         else:
-                                            valStop = time_v
+                                            # date parsing is done only the after the xml parsing
+                                            valStop = time
 
         trackDetails = TrackDetails()
-        if (vType == vDuration or vType == vAllValues):
-            start = parse(valStart)
+        if vType == vDuration or vType == vAllValues:
             stop = parse(valStop)
             duration = (stop - start)
             logging.info('duration: '+str(duration))
             trackDetails.duration = duration
 
-        if (vType == vDistance or vType == vAllValues):
-            logging.info('distance: '+str(distance))
-            trackDetails.distance = distance
+        if vType == vDistance or vType == vAllValues:
+            logging.info('distance: '+str(distanceTotal))
+            trackDetails.distance = distanceTotal
 
-        if (vType == vMaxElevation or vType == vAllValues):
-            em = float(-9999.0)
-            for e in elevations:
-                fe = float(e)
-                if fe > em:
-                    em = fe
-            trackDetails.elevation_max = em
+        if vType == vMaxElevation or vType == vAllValues:
+            trackDetails.elevation_max = maxElev
 
-        if (vType == vMinElevation or vType == vAllValues):
-            em = float(9999.0)
-            for e in elevations:
-                fe = float(e)
-                if fe < em:
-                    em = fe
-            trackDetails.elevation_min = em
+        if vType == vMinElevation or vType == vAllValues:
+            trackDetails.elevation_min = minElev
+
+        if vType == vSpeedMax or vType == vAllValues:
+            trackDetails.speed_max = speedMax
+
+        if vType == vSpeedAvrg or vType == vAllValues:
+            trackDetails.speed_avrg = float(speedSum / cntMeasurements)
+            logging.info('speed_avrg: '+str(trackDetails.speed_avrg))
 
         return trackDetails
+
+
 
     def getAllTrackDetails(self, blob_key):
         return self.getVal(blob_key, vAllValues)
@@ -230,10 +261,10 @@ class Details(webapp2.RequestHandler):
             'file_name' : blob_info.filename,
             'timestamp' : 'timestamp',
             'location' : 'location',
-            'avrg_speed' : 'avrg_speed',
+            'speed_avrg' : td.speed_avrg,
             'duration' : td.duration,
             'distance' : td.distance,
-            'top_speed' : 'top_speed',
+            'speed_max' : td.speed_max,
             'total_ascending' : 'total_ascending',
             'total_descending' : 'total_descending',
             'elevation_gain' : (td.elevation_max - td.elevation_min),
@@ -261,16 +292,13 @@ class Download(blobstore_handlers.BlobstoreDownloadHandler):
         blob_info = blobstore.BlobInfo.get(resource)
         self.send_blob(blob_info, save_as=blob_info.filename)
 
+
 class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
         upload_files = self.get_uploads('file')  # 'file' is file upload field in the form
         blob_info = upload_files[0]
         self.redirect('/servefile/%s' % blob_info.key())
 
-class Test(blobstore_handlers.BlobstoreDownloadHandler):
-    def get(self):
-        logging.info('Debugging {')
-        logging.info('Debugging }')
 
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
@@ -292,9 +320,6 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
         logging.info('XSD file read in.')
 
-        psviResult = ''
-        elementTree = ''
-        root = ''
         try:
             # use default values of minixsv, location of the schema file must
             # be specified in the XML file
@@ -304,20 +329,13 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
             #domTree = domTreeWrapper.getTree()
 
             # call validator with non-default values
-            psviResult = elementTreeWrapper = pyxsval.parseAndValidateString(
-            #psviResult = pyxsval.parseAndValidateString(
+            pyxsval.parseAndValidateString(
                 inputText, xsdText,
                 #xmlIfClass= pyxsval.XMLIF_ELEMENTTREE,
                 #warningProc=pyxsval.PRINT_WARNINGS,
                 #errorLimit=200, verbose=1,
                 #useCaching=0, processXInclude=0
                 )
-
-            #logging.info('done: ')
-            elementTreeWrapper = psviResult
-            # get elementtree object after validation
-            elementTree = elementTreeWrapper.getTree()
-            root = elementTreeWrapper.getRootNode()
 
         except pyxsval.XsvalError, errstr:
             print errstr
@@ -333,58 +351,6 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
             print errstr
             logging.error('Timeout-specific error page')
 
-        # redirect back to the upload page
-        #self.redirect('/')
-
-        #logging.info('elementTree: '+str(elementTree))
-        #logging.info('---------------------- root: '+str(root))
-        #eleList = root.getXPath('trk')
-
-        #eleList = root.getElementsByTagName()
-        #logging.info('---- : '+ str(eleList))
-        #for ele in eleList:
-            #s = str(ele)
-            #logging.info('---- : '+ s)
-
-        elevations = []
-        rootChildren = root.getChildren()
-        for root_c in rootChildren:
-            s = root_c.getTagName()
-            #logging.info('---- : '+ s)
-            if s == "trk":
-                trkChildren = root_c.getChildren()
-                for trk_c in trkChildren:
-                    s = trk_c.getTagName()
-                    #logging.info('---- ---- : '+ s)
-                    if s == "trkseg":
-                        trkseqChildren = trk_c.getChildren()
-                        for trkseq_c in trkseqChildren:
-                            #s = trkseq_c.getTagName()
-                            #logging.info('---- ---- ---- : '+ s)
-                            #lon = trkseq_c.getAttribute("lon")
-                            #lat = trkseq_c.getAttribute("lat")
-                            #logging.info('---- ---- ---- : '+ 'lon :'+lon + ' lat: '+lat)
-                            trkptChildren = trkseq_c.getChildren()
-                            for trkpt_c in trkptChildren:
-                                s = trkpt_c.getTagName()
-                                #logging.info('---- ---- ---- ---- : '+ s)
-                                if s == "ele":
-                                    ele_v = trkpt_c.getElementValue()
-                                    #logging.info('---- ---- ---- ---- : '+ str(ele_v))
-                                    elevations.append(ele_v)
-
-
-        em = float(-9999.0)
-        e_min = float(9999.0)
-        for e in elevations:
-            fe = float(e)
-            if fe < e_min:
-                e_min = fe
-            if fe > em:
-                em = fe
-
-        logging.info('elevation.size: '+str(len(elevations)))
-        logging.info('em: '+ str(em)+'; e_min: '+ str(e_min))
 
         # display the gpxtrack on the maplayer
         self.redirect('/maplayer/'+str(blob_key))
@@ -404,7 +370,6 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 def main():
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
-        ('/test', Test),
         ('/details/([^/]+)?', Details),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),
