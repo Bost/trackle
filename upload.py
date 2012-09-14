@@ -1,22 +1,19 @@
 #!/usr/bin/env python
 from __future__ import with_statement
-from google.appengine.api import files
 
 import logging
 import os
 import urllib
 import webapp2
+import jinja2
 
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-from genxmlif import GenXmlIfError
 from minixsv import pyxsval
-
-import jinja2
-import os
+from genxmlif import GenXmlIfError
 
 doctype = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
 meta_tag = '<meta http-equiv="Content-Type content="text/html;charset=ISO-8859-1" />'
@@ -55,13 +52,80 @@ class Details(webapp2.RequestHandler):
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
 
+        blob_reader = blobstore.BlobReader(blob_key)
+        inputText = blob_reader.read()
+
+        elementTree = ''
+        root = ''
+        try:
+            xsValidator = pyxsval.XsValidator ()
+            elementTreeWrapper = xsValidator.parseString(inputText)
+
+            #logging.info('done: ')
+            elementTree = elementTreeWrapper.getTree()
+            root = elementTreeWrapper.getRootNode()
+
+        except GenXmlIfError, errstr:
+            print errstr
+            logging.error("Parsing aborted!")
+
+        except db.Timeout, errstr:
+            #except (db.Timeout, db.InternalError):
+            #except datastore_errors.Timeout, errstr:
+            print errstr
+            logging.error('Timeout-specific error page')
+
+
+        elevations = []
+        rootChildren = root.getChildren()
+        for root_c in rootChildren:
+            s = root_c.getTagName()
+            #logging.info('---- : '+ s)
+            if s == "trk":
+                trkChildren = root_c.getChildren()
+                for trk_c in trkChildren:
+                    s = trk_c.getTagName()
+                    #logging.info('---- ---- : '+ s)
+                    if s == "trkseg":
+                        trkseqChildren = trk_c.getChildren()
+                        for trkseq_c in trkseqChildren:
+                            #s = trkseq_c.getTagName()
+                            #logging.info('---- ---- ---- : '+ s)
+                            #lon = trkseq_c.getAttribute("lon")
+                            #lat = trkseq_c.getAttribute("lat")
+                            #logging.info('---- ---- ---- : '+ 'lon :'+lon + ' lat: '+lat)
+                            trkptChildren = trkseq_c.getChildren()
+                            for trkpt_c in trkptChildren:
+                                s = trkpt_c.getTagName()
+                                #logging.info('---- ---- ---- ---- : '+ s)
+                                if s == "ele":
+                                    ele_v = trkpt_c.getElementValue()
+                                    #logging.info('---- ---- ---- ---- : '+ str(ele_v))
+                                    elevations.append(ele_v)
+
+
+        e_max = float(-9999.0)
+        e_min = float(9999.0)
+        for e in elevations:
+            fe = float(e)
+            if fe < e_min:
+                e_min = fe
+            if fe > e_max:
+                e_max = fe
+
+        logging.info('elevation.size: '+str(len(elevations)))
+        logging.info('e_max: '+ str(e_max)+'; e_min: '+ str(e_min))
+
+
+
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
-            'file_name' : 'file_name',
+            'file_name' : blob_info.filename,
             'timestamp' : 'timestamp',
             'location' : 'location',
             'avrg_speed' : 'avrg_speed',
+            'total_time' : 'total_time',
             'top_speed' : 'top_speed',
             'total_ascending' : 'total_ascending',
             'total_descending' : 'total_descending',
@@ -77,6 +141,7 @@ class Delete(webapp2.RequestHandler):
         blob_key = blob_info.key()
         blobstore.delete(blob_key)
         self.redirect('/')
+
 
 class Download(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
@@ -108,7 +173,6 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         #for b in blobstore.BlobInfo.all():
             #blob_key = b.key()
         blob_reader = blobstore.BlobReader(blob_key)
-
         inputText = blob_reader.read()
 
         # TODO The gpx.xsd cannot be placed in a subdirectory - why?
@@ -152,8 +216,8 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
             logging.error("Parsing aborted!")
 
         except db.Timeout, errstr:
-        #except (db.Timeout, db.InternalError):
-        #except datastore_errors.Timeout, errstr:
+            #except (db.Timeout, db.InternalError):
+            #except datastore_errors.Timeout, errstr:
             print errstr
             logging.error('Timeout-specific error page')
 
