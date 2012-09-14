@@ -9,7 +9,9 @@
         </form>
         {% for b in all_blobs %}
         <div>
-            <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a> <a href="/{{ url_delete }}/{{ b.key() }}">delete</a>
+            <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a>
+            <a href="/{{ url_delete }}/{{ b.key() }}">delete</a>
+            <a href="/{{ url_download }}/{{ b.key() }}">download</a>
         </div>
         {% endfor %}
     </body>

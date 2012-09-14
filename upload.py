@@ -37,6 +37,7 @@ class MainHandler(webapp2.RequestHandler):
             'all_blobs' : all_blobs,
             'url_maplayer' : 'maplayer',
             'url_delete' : 'delete',
+            'url_download' : 'download',
         }
 
         template = jinja_environment.get_template('/templates/uploadsite.html')
@@ -51,6 +52,11 @@ class Delete(webapp2.RequestHandler):
         blobstore.delete(blob_key)
         self.redirect('/')
 
+class Download(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        self.send_blob(blob_info, save_as=blob_info.filename)
 
 class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
@@ -166,8 +172,8 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                                     elevations.append(ele_v)
 
 
-        e_max = float(-999.0)
-        e_min = float(999.0)
+        e_max = float(-9999.0)
+        e_min = float(9999.0)
         for e in elevations:
             fe = float(e)
             if fe < e_min:
@@ -198,6 +204,7 @@ def main():
         ('/', MainHandler),
         ('/test', Test),
         ('/delete/([^/]+)?', Delete),
+        ('/download/([^/]+)?', Download),
         ('/upload_handler', UploadHandler),
         ('/servefile/([^/]+)?', ServeHandler),
         ], debug=True)

@@ -13,16 +13,19 @@ handlers:
 - url: /js
   static_dir: js
 
-- url: /test
-  script: upload.app
-
 - url: /maplayer/.*
   script: gps.app
 
 - url: /gpxtrack/.*
   script: gps.app
 
+- url: /download/.*
+  script: upload.app
+
 - url: /delete/.*
+  script: upload.app
+
+- url: /test
   script: upload.app
 
 - url: /servefile/.*
