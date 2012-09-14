@@ -19,6 +19,9 @@ handlers:
 - url: /gpxtrack/.*
   script: gps.app
 
+- url: /details/.*
+  script: upload.app
+
 - url: /download/.*
   script: upload.app
 

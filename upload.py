@@ -18,6 +18,9 @@ from minixsv import pyxsval
 import jinja2
 import os
 
+doctype = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
+meta_tag = '<meta http-equiv="Content-Type content="text/html;charset=ISO-8859-1" />'
+
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -33,16 +36,39 @@ class MainHandler(webapp2.RequestHandler):
         all_blobs = blobstore.BlobInfo.all()
 
         templateVals = {
+            'doctype' : doctype,
+            'meta_tag' : meta_tag,
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
             'url_maplayer' : 'maplayer',
             'url_delete' : 'delete',
             'url_download' : 'download',
+            'url_details' : 'details',
         }
-
         template = jinja_environment.get_template('/templates/uploadsite.html')
         self.response.out.write(template.render(templateVals))
 
+
+class Details(webapp2.RequestHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        blob_key = blob_info.key()
+
+        templateVals = {
+            'doctype' : doctype,
+            'meta_tag' : meta_tag,
+            'file_name' : 'file_name',
+            'timestamp' : 'timestamp',
+            'location' : 'location',
+            'avrg_speed' : 'avrg_speed',
+            'top_speed' : 'top_speed',
+            'total_ascending' : 'total_ascending',
+            'total_descending' : 'total_descending',
+            'elevation_difference' : 'elevation_difference',
+        }
+        template = jinja_environment.get_template('/templates/details.html')
+        self.response.out.write(template.render(templateVals))
 
 class Delete(webapp2.RequestHandler):
     def get(self, resource):
@@ -203,6 +229,7 @@ def main():
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
         ('/test', Test),
+        ('/details/([^/]+)?', Details),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),
         ('/upload_handler', UploadHandler),

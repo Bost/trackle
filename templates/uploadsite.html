@@ -1,4 +1,8 @@
+{{ doctype }}
 <html>
+    <head>
+        {{ meta_tag }}
+    </head>
     <body>
         <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
             <div>Upload gpx file:</div>
@@ -12,6 +16,7 @@
             <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a>
             <a href="/{{ url_delete }}/{{ b.key() }}">delete</a>
             <a href="/{{ url_download }}/{{ b.key() }}">download</a>
+            <a href="/{{ url_details }}/{{ b.key() }}">details</a>
         </div>
         {% endfor %}
     </body>
