@@ -45,8 +45,8 @@ def reset_cnt():
     globCnt = 0
 
 class GeoLocation(db.Model):
-    longitude = db.StringProperty()
-    latitude = db.StringProperty()
+    lon = db.StringProperty()
+    lat = db.StringProperty()
     timestamp = db.StringProperty()
     device_key = db.StringProperty()
     device_label = db.StringProperty()
@@ -73,7 +73,7 @@ class Show(webapp2.RequestHandler):
         s = ""
         locations = db.GqlQuery('SELECT * FROM GeoLocation ORDER BY date DESC')
         for loc in locations:
-            s = s + "<p>"+loc.latitude + ", " + loc.longitude +"</p>"
+            s = s + "<p>"+loc.lat + ", " + loc.lon +"</p>"
         count = GeoLocation.all(keys_only=True).count()
         s = "<html><body>"+str(count)+" stored positions:</br>"+s+"</body></head></html>"
         self.response.out.write(s)
@@ -85,8 +85,8 @@ class Store(webapp2.RequestHandler):
         s = ""
         for position in positions:
             geo_location = GeoLocation()
-            geo_location.longitude = str(position[0])
-            geo_location.latitude = str(position[1])
+            geo_location.lon = str(position[0])
+            geo_location.lat = str(position[1])
             geo_location.timestamp = str(position[2])
             geo_location.device_key = str("")
             geo_location.device_label = "test"
@@ -146,7 +146,7 @@ class TrackFromDBase(webapp2.RequestHandler):
         tags = ""
         for loc in locations:
             if cnt == globCnt or cnt == globCnt + 1:
-                tags += "<trkpt lat=\""+loc.latitude+"\" lon=\""+loc.longitude+"\">"
+                tags += "<trkpt lat=\""+loc.lat+"\" lon=\""+loc.lon+"\">"
                 tags += "<ele></ele><time>"+str(loc.date)+"</time></trkpt>"
             if cnt == globCnt:
                 tags += "\n\t\t\t"

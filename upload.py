@@ -7,6 +7,13 @@ import urllib
 import webapp2
 import jinja2
 
+from dateutil.relativedelta import *
+from dateutil.parser import *
+from datetime import *
+import commands
+
+from math import sqrt, cos, pi
+
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.ext.webapp import blobstore_handlers
@@ -18,8 +25,38 @@ from genxmlif import GenXmlIfError
 doctype = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
 meta_tag = '<meta http-equiv="Content-Type content="text/html;charset=ISO-8859-1" />'
 
+vMaxElevation = 'vMaxElevation'
+vMinElevation = 'vMinElevation'
+vDistance = 'vDistance'
+vDuration = 'vDuration'
+vTimeStmpStart = 'vTimeStmpStart'
+vTimeStmpStop = 'vTimeStmpStop'
+vAllValues = 'vAllValues'
+
+distanceUnits = 'km'
+elevationUnits = 'm'
+speedUnits = 'km / h'
+
+# Earth radius in kilometer
+R = 6371
+undef = -1
+
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
+
+class TrackDetails():
+    file_name = undef
+    timestamp = undef
+    location = undef
+    avrg_speed = undef
+    duration = undef
+    distance = undef
+    top_speed = undef
+    total_ascending = undef
+    total_descending = undef
+    elevation_gain = undef
+    elevation_max = undef
+    elevation_min = undef
 
 def getFileContent(path):
     os_path = os.path.join(os.path.split(__file__)[0], path)
@@ -47,11 +84,10 @@ class MainHandler(webapp2.RequestHandler):
 
 
 class Details(webapp2.RequestHandler):
-    def get(self, resource):
-        resource = str(urllib.unquote(resource))
-        blob_info = blobstore.BlobInfo.get(resource)
-        blob_key = blob_info.key()
+    def deg2rad(self, degree):
+        return (pi * float(degree) / 180.0)
 
+    def getVal(self, blob_key, vType=1):
         blob_reader = blobstore.BlobReader(blob_key)
         inputText = blob_reader.read()
 
@@ -61,10 +97,8 @@ class Details(webapp2.RequestHandler):
             xsValidator = pyxsval.XsValidator ()
             elementTreeWrapper = xsValidator.parseString(inputText)
 
-            #logging.info('done: ')
             elementTree = elementTreeWrapper.getTree()
             root = elementTreeWrapper.getRootNode()
-
         except GenXmlIfError, errstr:
             print errstr
             logging.error("Parsing aborted!")
@@ -75,9 +109,17 @@ class Details(webapp2.RequestHandler):
             print errstr
             logging.error('Timeout-specific error page')
 
+        valStart = undef
+        valStop = undef
+        lon1 = undef
+        lat1 = undef
+        lon2 = undef
+        lat2 = undef
+        distance = 0
 
         elevations = []
         rootChildren = root.getChildren()
+        i = 0
         for root_c in rootChildren:
             s = root_c.getTagName()
             #logging.info('---- : '+ s)
@@ -91,8 +133,25 @@ class Details(webapp2.RequestHandler):
                         for trkseq_c in trkseqChildren:
                             #s = trkseq_c.getTagName()
                             #logging.info('---- ---- ---- : '+ s)
-                            #lon = trkseq_c.getAttribute("lon")
-                            #lat = trkseq_c.getAttribute("lat")
+                            lon1 = lon2
+                            lat1 = lat2
+
+                            lon_degree = float(trkseq_c.getAttribute("lon"))
+                            lon2 = self.deg2rad(lon_degree)
+                            #logging.info('lon_degree : '+ str(lon_degree)+'; lon2: '+str(lon2))
+
+                            lat_degree = float(trkseq_c.getAttribute("lat"))
+                            lat2 = self.deg2rad(lat_degree)
+                            #logging.info('lat_degree : '+ str(lat_degree)+'; lat2: '+str(lat2))
+
+                            if (vType == vDistance or vType == vAllValues) and lon1 != undef and lat1 != undef:
+                                x = (lon2-lon1) * cos((lat1+lat2)/2)
+                                y = (lat2-lat1)
+                                d = sqrt(x*x + y*y) * R
+                                #logging.info('i:'+str(i)+'; d: '+str(d))
+                                #i += 1
+                                distance += d
+
                             #logging.info('---- ---- ---- : '+ 'lon :'+lon + ' lat: '+lat)
                             trkptChildren = trkseq_c.getChildren()
                             for trkpt_c in trkptChildren:
@@ -102,37 +161,90 @@ class Details(webapp2.RequestHandler):
                                     ele_v = trkpt_c.getElementValue()
                                     #logging.info('---- ---- ---- ---- : '+ str(ele_v))
                                     elevations.append(ele_v)
+                                if s == "time":
+                                    if (vType == vDuration or vType == vAllValues):
+                                        time_v = trkpt_c.getElementValue()
+                                        if valStart == undef:
+                                            valStart = time_v
+                                        else:
+                                            valStop = time_v
 
+        trackDetails = TrackDetails()
+        if (vType == vDuration or vType == vAllValues):
+            start = parse(valStart)
+            stop = parse(valStop)
+            duration = (stop - start)
+            logging.info('duration: '+str(duration))
+            trackDetails.duration = duration
 
-        e_max = float(-9999.0)
-        e_min = float(9999.0)
-        for e in elevations:
-            fe = float(e)
-            if fe < e_min:
-                e_min = fe
-            if fe > e_max:
-                e_max = fe
+        if (vType == vDistance or vType == vAllValues):
+            logging.info('distance: '+str(distance))
+            trackDetails.distance = distance
 
-        logging.info('elevation.size: '+str(len(elevations)))
-        logging.info('e_max: '+ str(e_max)+'; e_min: '+ str(e_min))
+        if (vType == vMaxElevation or vType == vAllValues):
+            em = float(-9999.0)
+            for e in elevations:
+                fe = float(e)
+                if fe > em:
+                    em = fe
+            trackDetails.elevation_max = em
 
+        if (vType == vMinElevation or vType == vAllValues):
+            em = float(9999.0)
+            for e in elevations:
+                fe = float(e)
+                if fe < em:
+                    em = fe
+            trackDetails.elevation_min = em
 
+        return trackDetails
+
+    def getAllTrackDetails(self, blob_key):
+        return self.getVal(blob_key, vAllValues)
+
+    def getMaxElevation(self, blob_key):
+        return self.getVal(blob_key, vMaxElevation)
+
+    def getMinElevation(self, blob_key):
+        return self.getVal(blob_key, vMinElevation)
+
+    def getDuration(self, blob_key):
+        return self.getVal(blob_key, vDuration)
+
+    def getDistance(self, blob_key):
+        """ Uses Equirectangular approximation. Precise enough only for small
+        distances see http://www.movable-type.co.uk/scripts/latlong.html """
+        return self.getVal(blob_key, vDistance)
+
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        blob_key = blob_info.key()
+
+        td = self.getAllTrackDetails(blob_key)
 
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
+
             'file_name' : blob_info.filename,
             'timestamp' : 'timestamp',
             'location' : 'location',
             'avrg_speed' : 'avrg_speed',
-            'total_time' : 'total_time',
+            'duration' : td.duration,
+            'distance' : td.distance,
             'top_speed' : 'top_speed',
             'total_ascending' : 'total_ascending',
             'total_descending' : 'total_descending',
-            'elevation_difference' : 'elevation_difference',
+            'elevation_gain' : (td.elevation_max - td.elevation_min),
+
+            'distanceUnits' : distanceUnits,
+            'elevationUnits' : elevationUnits,
+            'speedUnits' : speedUnits,
         }
         template = jinja_environment.get_template('/templates/details.html')
         self.response.out.write(template.render(templateVals))
+
 
 class Delete(webapp2.RequestHandler):
     def get(self, resource):
@@ -186,7 +298,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         try:
             # use default values of minixsv, location of the schema file must
             # be specified in the XML file
-            #domTreeWrapper = pyxsval .parseAndValidate ("Test.xml") 
+            #domTreeWrapper = pyxsval .parseAndValidate ("Test.xml")
 
             # domTree is a minidom document object
             #domTree = domTreeWrapper.getTree()
@@ -196,7 +308,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
             #psviResult = pyxsval.parseAndValidateString(
                 inputText, xsdText,
                 #xmlIfClass= pyxsval.XMLIF_ELEMENTTREE,
-                #warningProc=pyxsval.PRINT_WARNINGS, 
+                #warningProc=pyxsval.PRINT_WARNINGS,
                 #errorLimit=200, verbose=1,
                 #useCaching=0, processXInclude=0
                 )
@@ -210,7 +322,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         except pyxsval.XsvalError, errstr:
             print errstr
             logging.error("Validation aborted!")
- 
+
         except GenXmlIfError, errstr:
             print errstr
             logging.error("Parsing aborted!")
@@ -262,17 +374,17 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                                     elevations.append(ele_v)
 
 
-        e_max = float(-9999.0)
+        em = float(-9999.0)
         e_min = float(9999.0)
         for e in elevations:
             fe = float(e)
             if fe < e_min:
                 e_min = fe
-            if fe > e_max:
-                e_max = fe
+            if fe > em:
+                em = fe
 
         logging.info('elevation.size: '+str(len(elevations)))
-        logging.info('e_max: '+ str(e_max)+'; e_min: '+ str(e_min))
+        logging.info('em: '+ str(em)+'; e_min: '+ str(e_min))
 
         # display the gpxtrack on the maplayer
         self.redirect('/maplayer/'+str(blob_key))
