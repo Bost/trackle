@@ -31,6 +31,7 @@ vDistance = 'vDistance'
 vDuration = 'vDuration'
 vTimeStmpStart = 'vTimeStmpStart'
 vTimeStmpStop = 'vTimeStmpStop'
+vStartLocation = 'vStartLocation'
 vAllValues = 'vAllValues'
 vSpeedAvrg = 'vSpeedAvrg'
 vSpeedMax = 'vSpeedMax'
@@ -51,6 +52,8 @@ class TrackDetails():
     file_name = undef
     timestamp = undef
     location = undef
+    startLon = undef
+    startLat = undef
     speed_avrg = undef
     duration = undef
     distance = undef
@@ -128,6 +131,8 @@ class Details(webapp2.RequestHandler):
         cntMeasurements = 0
         speedSum = 0
 
+        trackDetails = TrackDetails()
+
         rootChildren = root.getChildren()
         for root_c in rootChildren:
             tagName = root_c.getTagName()
@@ -140,7 +145,7 @@ class Details(webapp2.RequestHandler):
                         for trkseq_c in trkseqChildren:
 
                             # speed calculation implies distance and time calculation
-                            if vType == vDistance or vType == vSpeedAvrg or vType == vSpeedMax or vType == vAllValues:
+                            if vType == vDistance or vType == vSpeedAvrg or vType == vSpeedMax or vType == vAllValues or vType == vStartLocation:
                                 lon1 = lon2
                                 lon_degree = float(trkseq_c.getAttribute("lon"))
                                 lon2 = self.deg2rad(lon_degree)
@@ -148,6 +153,13 @@ class Details(webapp2.RequestHandler):
                                 lat1 = lat2
                                 lat_degree = float(trkseq_c.getAttribute("lat"))
                                 lat2 = self.deg2rad(lat_degree)
+
+                                if trackDetails.startLon == undef:
+                                    trackDetails.startLon = lon_degree
+                                    trackDetails.startLat = lat_degree
+
+                                    if vType == vStartLocation:
+                                        return trackDetails
 
                                 #logging.info('lon_degree: '+str(lon_degree)+'; lat_degree: '+str(lat_degree))
 
@@ -202,7 +214,6 @@ class Details(webapp2.RequestHandler):
                                             # date parsing is done only the after the xml parsing
                                             valStop = time
 
-        trackDetails = TrackDetails()
         if vType == vDuration or vType == vAllValues:
             stop = parse(valStop)
             duration = (stop - start)
@@ -241,6 +252,9 @@ class Details(webapp2.RequestHandler):
 
     def getDuration(self, blob_key):
         return self.getVal(blob_key, vDuration)
+
+    def getStartLocation(self, blob_key):
+        return self.getVal(blob_key, vStartLocation)
 
     def getDistance(self, blob_key):
         """ Uses Equirectangular approximation. Precise enough only for small

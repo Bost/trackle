@@ -12,6 +12,7 @@ from google.appengine.api import mail
 
 import jinja2
 import os
+from upload import Details
 
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -118,16 +119,14 @@ class MapLayer(webapp2.RequestHandler):
         logging.info("length: "+cntGpsPositions)
         reset_cnt()
 
-        style = "width:100%; height:100%"
-        lon=9.181918049511319
-        lat=48.78224865627344
-        zoom=16
+        details = Details()
+        td = details.getStartLocation(blob_key)
         templateVals = {
             'cntGpsPositions' : cntGpsPositions,
-            'style' : style,
-            'lon' : lon,
-            'lat' : lat,
-            'zoom' : zoom,
+            'style' : "width:100%; height:100%",
+            'lon' : td.startLon,
+            'lat' : td.startLat,
+            'zoom' : 16,
             'gpxTrackUrl' : gpxTrackUrl,
         }
 
