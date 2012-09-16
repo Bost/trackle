@@ -2,23 +2,94 @@
 <html>
     <head>
         {{ meta_tag }}
+        <script src="js/jquery-1.8.0.min.js"></script>
+        <script src="js/jquery-ui-1.8.23.custom.min.js"></script>
+        <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
+        <!--<link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.8.23.custom.css">-->
+        <style type="text/css">
+            .realupload {
+                position:absolute;
+                top:0;
+                right:0;
+
+                /* start of transparency styles */
+                opacity:0;
+                -moz-opacity:0;
+                filter:alpha(opacity:0);
+                /* end of transparency styles */
+
+                z-index:2; /* bring the real upload interactivity up front */
+                width:270px;
+            }
+            form .fakeupload input {
+                width:401px;
+            }
+
+            .ui-button .ui-button-text {
+                line-height: 0.82em;
+            }
+
+        </style>
+        <script>
+            $(function() {
+                $( "#submit" ).button({
+                    icons: {
+                        primary: "ui-icon-transferthick-e-w"
+                    },
+                });
+                $( ".button-download" ).button({
+                    icons: {
+                        primary: "ui-icon-disk"
+                    },
+                });
+                $( ".button-delete" ).button({
+                    icons: {
+                        primary: "ui-icon-trash"
+                    },
+                });
+                $( ".button-details" ).button({
+                    icons: {
+                        primary: "ui-icon-zoomin"
+                    },
+                });
+            });
+        </script>
     </head>
     <body>
-        <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
-            <div>Upload gpx file:</div>
-            <div>
-                <input type="file" name="file"/>
-                <input type="submit" name="submit" value="Submit"/>
-            </div>
-        </form>
-        {% for b in all_blobs %}
-        <div>
-            <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a>
-            <a href="/{{ url_delete }}/{{ b.key() }}">delete</a>
-            <a href="/{{ url_download }}/{{ b.key() }}">download</a>
-            <a href="/{{ url_details }}/{{ b.key() }}">details</a>
+        <div class="ui-widget">
+
+            <label for="realupload">
+                <button class="ui-button ui-button-text-only ui-widget ui-state-default ui-corner-all">
+                    <span class="ui-button-text">Upload GPX file: </span>
+                </button>
+            </label>
+
+            <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
+                <!--
+                <div>Upload GPX file:</div>
+                <input id="file" type="file" name="file" value="Val"/>
+                -->
+
+                <!--<label for="realupload">Upload file: </label>-->
+
+                <div class="fakeupload">
+                    <input type="text" name="fakeupload" /> <!-- browse button is here as background -->
+                </div>
+                <input type="file" name="file" id="realupload" class="realupload" onchange="this.form.fakeupload.value = this.value;" />
+
+                <button id="submit" type="submit" name="submit">Submit</button>
+            </form>
+            <!--<form action="{{ url_delete }}" method="GET" enctype="multipart/form-data">-->
+                {% for b in all_blobs %}
+                <div class="ui-widget">
+                    <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a>
+                    <button onclick="location.href='/{{ url_download }}/{{ b.key() }}'" class="button-download">Download</button>
+                    <button onclick="location.href='/{{ url_delete }}/{{ b.key() }}'" class="button-delete">Delete</button>
+                    <button onclick="location.href='/{{ url_details }}/{{ b.key() }}'" class="button-details">Details</button>
+                </div>
+                {% endfor %}
+            <!--</form>-->
         </div>
-        {% endfor %}
     </body>
 </html>
 
