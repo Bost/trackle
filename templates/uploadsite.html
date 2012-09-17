@@ -2,8 +2,9 @@
 <html>
     <head>
         {{ meta_tag }}
-        <script src="js/jquery-1.8.0.min.js"></script>
-        <script src="js/jquery-ui-1.8.23.custom.min.js"></script>
+        <script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
+        <script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
+        <!--<script type="text/javascript" src="https://github.com/SamWM/jQuery-Plugins/raw/master/checkboxes/jquery.checkboxes.min.js"></script>-->
         <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
         <!--<link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.8.23.custom.css">-->
         <style type="text/css">
@@ -52,6 +53,16 @@
                         primary: "ui-icon-zoomin"
                     },
                 });
+
+                $("input[type=checkbox][checked]").each(function() {
+                    console.log('checked: id: ', this.id);
+                    console.log('checked: value:', this.value);
+                });
+                $("input[type=checkbox]").each(function() {
+                    console.log('not checked: id: ', this.id);
+                    console.log('not checked: value:', this.value);
+                });
+
             });
         </script>
     </head>
@@ -80,15 +91,17 @@
                 <button id="submit" type="submit" name="submit">Submit</button>
             </form>
             <!--<form action="{{ url_delete }}" method="GET" enctype="multipart/form-data">-->
+            <form id="myform" action="?">
                 {% for b in all_blobs %}
                 <div class="ui-widget">
+                    <input type="checkbox" id="checkbox1" class="top5" value="{{ b.key() }}">
                     <a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a>
                     <button onclick="location.href='/{{ url_download }}/{{ b.key() }}'" class="button-download">Download</button>
                     <button onclick="location.href='/{{ url_delete }}/{{ b.key() }}'" class="button-delete">Delete</button>
                     <button onclick="location.href='/{{ url_details }}/{{ b.key() }}'" class="button-details">Details</button>
                 </div>
                 {% endfor %}
-            <!--</form>-->
+            </form>
         </div>
     </body>
 </html>

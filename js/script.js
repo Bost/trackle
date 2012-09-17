@@ -1,18 +1,56 @@
 var map; //complex object of type OpenLayers.Map
 
-function myFn(trackUrl) {
-    console.log("trackUrl: "+trackUrl)
-    // Add the Layer with the GPX Track
-    var lgpx = new OpenLayers.Layer.Vector("", {
+var colors = [
+    'aqua', 'black', 'blue', 'fuchsia', 'gray', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'red', 'silver', 'teal', 'white', 'yellow',
+    ];
+
+// Add the Layer with the GPX Track
+function myFn(arr) {
+    for(var i in arr) {
+        if (i >= colors.length) {
+            console.error("Cannot display more than "+arr.length+" tracks");
+            break;
+        }
+        var trackUrl = arr[i];
+        var color = colors[i];
+        console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+
+        var lgpx = new OpenLayers.Layer.Vector("", {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: trackUrl,
+            format: new OpenLayers.Format.GPX()
+            }),
+            style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
+            projection: new OpenLayers.Projection("EPSG:4326")
+        });
+        map.addLayer(lgpx);
+    }
+/*
+    var lgpx0 = new OpenLayers.Layer.Vector("", {
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
-            url: trackUrl,
+            //url: trackUrl,
+            url: '/gpxtrack/N3gkKLXXN6XDMBmz8NG4cw==',
             format: new OpenLayers.Format.GPX()
         }),
         style: {strokeColor: "green", strokeWidth: 5, strokeOpacity: 0.7},
         projection: new OpenLayers.Projection("EPSG:4326")
     });
-    map.addLayer(lgpx);
+    map.addLayer(lgpx0);
+            //url: '/gpxtrack/N3gkKLXXN6XDMBmz8NG4cw==',
+            //url: '/gpxtrack/hWRsK_SJ9tUiwGgQePHwpA==',
+    var lgpx1 = new OpenLayers.Layer.Vector("", {
+        strategies: [new OpenLayers.Strategy.Fixed()],
+        protocol: new OpenLayers.Protocol.HTTP({
+            url: '/gpxtrack/hWRsK_SJ9tUiwGgQePHwpA==',
+            format: new OpenLayers.Format.GPX()
+        }),
+        style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.7},
+        projection: new OpenLayers.Projection("EPSG:4326")
+    });
+    map.addLayer(lgpx1);
+    */
 }
 
 function init(cntGpsPositions, lon, lat, zoom, trackUrl) {
