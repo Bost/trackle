@@ -13,48 +13,38 @@ function myFn(arr) {
         }
         var trackUrl = arr[i];
         var color = colors[i];
-        console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+        //console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
 
         var lgpx = new OpenLayers.Layer.Vector("", {
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
                 url: trackUrl,
-            format: new OpenLayers.Format.GPX()
+                format: new OpenLayers.Format.GPX()
             }),
             style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
             projection: new OpenLayers.Projection("EPSG:4326")
         });
         map.addLayer(lgpx);
     }
+}
 /*
+function myFn(trackUrl) {
     var lgpx0 = new OpenLayers.Layer.Vector("", {
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
-            //url: trackUrl,
-            url: '/gpxtrack/N3gkKLXXN6XDMBmz8NG4cw==',
+            url: trackUrl,
+            //url: '/gpxtrack/N3gkKLXXN6XDMBmz8NG4cw==',
             format: new OpenLayers.Format.GPX()
         }),
         style: {strokeColor: "green", strokeWidth: 5, strokeOpacity: 0.7},
         projection: new OpenLayers.Projection("EPSG:4326")
     });
     map.addLayer(lgpx0);
-            //url: '/gpxtrack/N3gkKLXXN6XDMBmz8NG4cw==',
-            //url: '/gpxtrack/hWRsK_SJ9tUiwGgQePHwpA==',
-    var lgpx1 = new OpenLayers.Layer.Vector("", {
-        strategies: [new OpenLayers.Strategy.Fixed()],
-        protocol: new OpenLayers.Protocol.HTTP({
-            url: '/gpxtrack/hWRsK_SJ9tUiwGgQePHwpA==',
-            format: new OpenLayers.Format.GPX()
-        }),
-        style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.7},
-        projection: new OpenLayers.Projection("EPSG:4326")
-    });
-    map.addLayer(lgpx1);
-    */
 }
+*/
 
-function init(cntGpsPositions, lon, lat, zoom, trackUrl) {
-    console.log("trackUrl: "+trackUrl)
+function init(cntGpsPositions, lon, lat, zoom, arrUrls) {
+    console.log("arrUrls: "+arrUrls)
     map = new OpenLayers.Map ("map", {
         controls:[
             new OpenLayers.Control.Navigation(),
@@ -98,7 +88,7 @@ function init(cntGpsPositions, lon, lat, zoom, trackUrl) {
     for (var i = 0; i < cntGpsPositions; i++) {
         time += time_inc
         setTimeout(
-            function() {myFn(trackUrl)},
+            function() { myFn(arrUrls) },
             time);
         //console.log("Cycle nr: " + i +"; time: "+time);
     }

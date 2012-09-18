@@ -75,17 +75,31 @@ class MainHandler(webapp2.RequestHandler):
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
 
+        details = Details()
+        entries = []
+        for b in blobstore.BlobInfo.all():
+            bKey = b.key()
+            bFilename = b.filename
+            td = details.getStartLocation(bKey)
+            entry = { 'lon' : td.startLon, 'lat' : td.startLat, 'bKey' : bKey , 'bFilename' : bFilename }
+
+            entries.append(entry)
+
+        logging.info('entries: '+ str(entries))
+
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
+            'entries' : entries,
             'url_maplayer' : 'maplayer',
             'url_delete' : 'delete',
             'url_download' : 'download',
             'url_details' : 'details',
         }
-        template = jinja_environment.get_template('/templates/uploadsite.html')
+        template = jinja_environment.get_template('/templates/layout.html')
+        #template = jinja_environment.get_template('/templates/uploadsite.html')
         self.response.out.write(template.render(templateVals))
 
 
@@ -287,7 +301,8 @@ class Details(webapp2.RequestHandler):
             'elevationUnits' : elevationUnits,
             'speedUnits' : speedUnits,
         }
-        template = jinja_environment.get_template('/templates/details.html')
+        #template = jinja_environment.get_template('/templates/details.html')
+        template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
 
 

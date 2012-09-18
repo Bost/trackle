@@ -131,6 +131,7 @@ class MapLayer(webapp2.RequestHandler):
         }
 
         template = jinja_environment.get_template('/templates/maplayer.html')
+        #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
 
 
