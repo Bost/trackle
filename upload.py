@@ -100,7 +100,8 @@ class MainHandler(webapp2.RequestHandler):
         }
         template = jinja_environment.get_template('/templates/layout.html')
         #template = jinja_environment.get_template('/templates/uploadsite.html')
-        self.response.out.write(template.render(templateVals))
+        s = template.render(templateVals)
+        self.response.out.write(s)
 
 
 class Details(webapp2.RequestHandler):
@@ -301,8 +302,8 @@ class Details(webapp2.RequestHandler):
             'elevationUnits' : elevationUnits,
             'speedUnits' : speedUnits,
         }
-        #template = jinja_environment.get_template('/templates/details.html')
-        template = jinja_environment.get_template('/templates/layout.html')
+        template = jinja_environment.get_template('/templates/details.html')
+        #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
 
 

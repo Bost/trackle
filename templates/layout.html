@@ -16,6 +16,16 @@
     <script type="text/javascript" src="js/script.js"></script>
     <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
     <style type="text/css">
+
+    .ui-button .ui-button-text {
+        line-height: 0.7em;
+        font-weight: normal;
+        font-size: small;
+    }
+
+    .details {
+        font-size: smaller;
+    }
     /**
      *    Basic Layout Theme
      *
@@ -91,6 +101,59 @@
 
     <script type="text/javascript">
 
+	// options for a 2-level layout _inside_ tab-panel #1
+	var tabLayoutSettings = {
+		name:						"tabLayout"
+	,	initPanes:					false // delay layout init until tab.show calls tabLayout.resizeAll()
+	,	resizeWithWindow:			false // needed because 'nested' inside the tabLayout div
+	,	center__paneSelector:		".m-center"
+	,	west__paneSelector:			".m-west"
+	,	east__paneSelector:			".m-east"
+	,	north__paneSelector:  		".m-north"
+	,	south__paneSelector:  		".m-south"
+	,	contentSelector:			".ui-widget-content"
+	,	spacing_open:				4
+	,	spacing_closed:				4
+	,	north__minSize:				20
+	,	north__spacing_open:		1
+	,	north__togglerLength_open:	0
+	,	north__togglerLength_close:	-1
+	,	north__resizable:			false
+	,	north__slidable:			false
+	,	north__fxName:				'none'
+	,	west__size:					200
+	//,	west__initClosed:			true
+	,	south__minSize:				5
+	,	south__size:				'auto'
+	,	south__togglerLength_open:	0
+	,	south__togglerLength_close:	-1
+	,	south__resizable:			false
+	,	south__slidable:			false
+	,	south__spacing_open:		1
+    //	options for 2nd-level layout nested inside center-pane of tab-layout
+    /*
+	,	center__childOptions: {
+			name:						"innerLayout"
+		,	center__paneSelector:		".inner-center"
+		,	west__paneSelector:			".inner-west"
+		,	east__paneSelector:			".inner-east"
+		,	north__paneSelector:		".inner-north"
+		,	contentSelector:			".ui-widget-content"
+		,	west__initClosed:			true
+		,	east__initClosed:			true
+		,	spacing_open:				4
+		,	spacing_closed:				4
+		,	west__size:					361
+		,	east__size:					250
+		,	east__fxSpeed:				'slow'
+		,	north__minSize:				15
+		,	north__spacing_open:		2
+		,	north__togglerLength_open:	50
+		,	north__togglerLength_close:	-1
+        }
+    */
+	};
+
     var outerLayout, innerLayout;
 
     $(document).ready(function () {
@@ -114,6 +177,7 @@
             }
         });
 
+
         innerLayout = $('body > .ui-layout-center').layout({
              minSize:  50
             ,closable: false
@@ -121,23 +185,53 @@
 
     });
 
-        function go(lon, lat) {
+    $(document).ready(function () {
+        $('#details').layout( tabLayoutSettings );
+    });
+
+    function go(lon, lat, filename, blob_key) {
+/*
         $('#map').html('');
 
-        var urls = new Array();
+        var arrTrackUrls = new Array();
         $(".cbox:checked").each(function(){
-            urls.push("/gpxtrack/"+$(this).attr('id'));
+            arrTrackUrls.push("/gpxtrack/"+$(this).attr('id'));
         });
-        init(1, lon, lat, 16, urls);
+        init(1, lon, lat, 16, arrTrackUrls);
+
+ */
+
+        var details = $('#details');
+        var arrContainers = [
+            { id : 'container-center' , class : 'm-center details ui-layout-center' },
+            { id : 'container-east'   , class : 'm-east details ui-layout-east'     },
+            { id : 'container-west'   , class : 'm-west details ui-layout-west'     },
+        ];
+
+        var cId, cElem, cClass;
+        for (var c in arrContainers) {
+            cId = arrContainers[c].id;
+            cElem = $('#'+cId);
+            cClass = arrContainers[c].class;
+
+            var attrs = 'id="'+cId+'" class="'+cClass+'"';
+            //console.log('; cElem: '+cElem+'; attrs: '+attrs);
+            if (cElem.length == 0) {
+                console.log('Creating: cElem: '+cElem+'; attrs: '+attrs);
+                details.append($('<div '+attrs+'></div>'));
+                break;
+            }
+        }
+        details.layout( tabLayoutSettings );
+        var urlDetails = '/details/'+blob_key;
+        $('#'+cId).load(urlDetails, function() {
+            console.log('Url loaded: '+urlDetails+'; element id: '+cId);
+        });
     }
 
-    </script>
-
-    <script>
-        $(function() {
-            $( "#check" ).button();
-            $( "#format" ).buttonset();
-        });
+    $(function() {
+        $( ".cbox" ).button();
+    });
     </script>
     <style>
         #format { margin-top: 2em; }
@@ -148,47 +242,33 @@
 <div class="ui-layout-west">
     <!--pane #4-->
     <div><button onclick="outerLayout.hide('west', true)">Close Me</button></div>
-    <div class="separator"></div>
-            <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
-                
-                <div>Upload GPX file:</div>
-                <input id="file" type="file" name="file" value="Val"/>
-                
-                <!--<label for="realupload">Upload file: </label>-->
 
-                <!--
-                <div class="fakeupload">
-                    <input type="text" name="fakeupload" /> #!== browse button is here as background ==#
-                </div>
-                <input type="file" name="file" id="realupload" class="realupload" onchange="this.form.fakeupload.value = this.value;" />
-                -->
-                
-                <button id="submit" type="submit" name="submit">Submit</button>
-            </form>
-    <!--<form id="myform" action="?">-->
-        <!--{% for b in all_blobs %}-->
-        <!--<div class="ui-widget">-->
-            <!--<input type="checkbox" id="checkbox1" class="top5" value="{{ b.key() }}">-->
-            <!--<a href="/{{ url_maplayer }}/{{ b.key() }}">{{ b.filename }}</a>-->
-            <!--<button onclick="location.href='/{{ url_download }}/{{ b.key() }}'" class="button-download">Download</button>-->
-            <!--<button onclick="location.href='/{{ url_delete }}/{{ b.key() }}'" class="button-delete">Delete</button>-->
-            <!--<button onclick="location.href='/{{ url_details }}/{{ b.key() }}'" class="button-details">Details</button>-->
-        <!--</div>-->
-        <!--{% endfor %}-->
-    <!--</form>-->
     <div class="separator"></div>
 
-    {% for e in entries %}
-        <button onclick="$('#map').html('');$('#map').html(function() {
-                init(1, {{ e.lon }}, {{ e.lat }}, 16, new Array('/gpxtrack/{{ e.bKey }}'))
-            });">{{ e.bFilename }}</button>
-    {% endfor %}
+    <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
+
+        <div>Upload GPX file:</div>
+        <input id="file" type="file" name="file" value="Val"/>
+
+        <!--<label for="realupload">Upload file: </label>-->
+
+        <!--
+        <div class="fakeupload">
+            <input type="text" name="fakeupload" /> #!== browse button is here as background ==#
+        </div>
+        <input type="file" name="file" id="realupload" class="realupload" onchange="this.form.fakeupload.value = this.value;" />
+        -->
+
+        <button id="submit" type="submit" name="submit">Submit</button>
+    </form>
 
     <div class="ui-widget" id="format">
-    {% for e in entries %}
-        <!--<input type="checkbox" id="{{ e.bKey }}" /><label for="{{ e.bKey }}">{{ e.bFilename }}</label>-->
-        <input type="checkbox" onclick="go({{ e.lon }}, {{ e.lat }})" class="cbox" id="{{ e.bKey }}" /><label for="{{ e.bKey }}">A</label>
-    {% endfor %}
+        {% for e in entries %}
+        <div>
+            <input type="checkbox" onclick="go({{ e.lon }}, {{ e.lat }}, '{{ e.bFilename }}', '{{ e.bKey }}')" class="cbox" id="{{ e.bKey }}" />
+            <label for="{{ e.bKey }}">{{ e.bFilename }}</label>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
@@ -199,7 +279,7 @@
             <button onclick="outerLayout.show('west',true)">Open #4</button>
         </div>
         <div id="pane3-buttons">
-            This is pane #3 &nbsp; &nbsp;
+            pane #3 &nbsp; &nbsp;
             <button onclick="innerLayout.sizePane('north', 300)">'Open' Pane</button> &nbsp;
             <button onclick="innerLayout.sizePane('north', 50)">'Close' Pane</button>
         </div>
@@ -211,7 +291,11 @@
     </div>
 
     <div class="ui-layout-south">
-        This is pane #1 &nbsp; &nbsp;
+        <div id="details" style="height:100%">
+            <div id="container-center" class="m-center details ui-layout-center"> center </div>
+            <div id="container-east" class="m-east details ui-layout-east"> east </div>
+            <div id="container-west" class="m-west details ui-layout-west"> west </div>
+        </div>
         <button onclick="innerLayout.sizePane('south', 300)">'Open' Pane</button> &nbsp;
         <button onclick="innerLayout.sizePane('south', 50)">'Close' Pane</button>
     </div>
