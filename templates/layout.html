@@ -101,58 +101,60 @@
 
     <script type="text/javascript">
 
-	// options for a 2-level layout _inside_ tab-panel #1
-	var tabLayoutSettings = {
-		name:						"tabLayout"
-	,	initPanes:					false // delay layout init until tab.show calls tabLayout.resizeAll()
-	,	resizeWithWindow:			false // needed because 'nested' inside the tabLayout div
-	,	center__paneSelector:		".m-center"
-	,	west__paneSelector:			".m-west"
-	,	east__paneSelector:			".m-east"
-	,	north__paneSelector:  		".m-north"
-	,	south__paneSelector:  		".m-south"
-	,	contentSelector:			".ui-widget-content"
-	,	spacing_open:				4
-	,	spacing_closed:				4
-	,	north__minSize:				20
-	,	north__spacing_open:		1
-	,	north__togglerLength_open:	0
-	,	north__togglerLength_close:	-1
-	,	north__resizable:			false
-	,	north__slidable:			false
-	,	north__fxName:				'none'
-	,	west__size:					200
-	//,	west__initClosed:			true
-	,	south__minSize:				5
-	,	south__size:				'auto'
-	,	south__togglerLength_open:	0
-	,	south__togglerLength_close:	-1
-	,	south__resizable:			false
-	,	south__slidable:			false
-	,	south__spacing_open:		1
-    //	options for 2nd-level layout nested inside center-pane of tab-layout
+    // options for a 2-level layout _inside_ tab-panel #1
+    var tabLayoutSettings = {
+        name:                        "tabLayout"
+    ,    initPanes:                    false // delay layout init until tab.show calls tabLayout.resizeAll()
+    ,    resizeWithWindow:            false // needed because 'nested' inside the tabLayout div
+    ,    center__paneSelector:        ".m-center"
+    ,    west__paneSelector:            ".m-west"
+    ,    east__paneSelector:            ".m-east"
+    ,    north__paneSelector:          ".m-north"
+    ,    south__paneSelector:          ".m-south"
+    ,    contentSelector:            ".ui-widget-content"
+    ,    spacing_open:                4
+    ,    spacing_closed:                4
+    ,    north__minSize:                20
+    ,    north__spacing_open:        1
+    ,    north__togglerLength_open:    0
+    ,    north__togglerLength_close:    -1
+    ,    north__resizable:            false
+    ,    north__slidable:            false
+    ,    north__fxName:                'none'
+    ,    west__size:                    '33%'
+    ,    center__size:                '33%'
+    ,    east__size:                    '33%'
+    //,    west__initClosed:            true
+    ,    south__minSize:                5
+    ,    south__size:                'auto'
+    ,    south__togglerLength_open:    0
+    ,    south__togglerLength_close:    -1
+    ,    south__resizable:            false
+    ,    south__slidable:            false
+    ,    south__spacing_open:        1
+    //    options for 2nd-level layout nested inside center-pane of tab-layout
     /*
-	,	center__childOptions: {
-			name:						"innerLayout"
-		,	center__paneSelector:		".inner-center"
-		,	west__paneSelector:			".inner-west"
-		,	east__paneSelector:			".inner-east"
-		,	north__paneSelector:		".inner-north"
-		,	contentSelector:			".ui-widget-content"
-		,	west__initClosed:			true
-		,	east__initClosed:			true
-		,	spacing_open:				4
-		,	spacing_closed:				4
-		,	west__size:					361
-		,	east__size:					250
-		,	east__fxSpeed:				'slow'
-		,	north__minSize:				15
-		,	north__spacing_open:		2
-		,	north__togglerLength_open:	50
-		,	north__togglerLength_close:	-1
+    ,    center__childOptions: {
+            name:                        "innerLayout"
+        ,    center__paneSelector:        ".inner-center"
+        ,    west__paneSelector:            ".inner-west"
+        ,    east__paneSelector:            ".inner-east"
+        ,    north__paneSelector:        ".inner-north"
+        ,    contentSelector:            ".ui-widget-content"
+        ,    west__initClosed:            true
+        ,    east__initClosed:            true
+        ,    spacing_open:                4
+        ,    spacing_closed:                4
+        ,    west__size:                    361
+        ,    east__size:                    250
+        ,    east__fxSpeed:                'slow'
+        ,    north__minSize:                15
+        ,    north__spacing_open:        2
+        ,    north__togglerLength_open:    50
+        ,    north__togglerLength_close:    -1
         }
     */
-	};
+    };
 
     var outerLayout, innerLayout;
 
@@ -179,33 +181,42 @@
 
 
         innerLayout = $('body > .ui-layout-center').layout({
-             minSize:  50
-            ,closable: false
+            north: {
+                 size:     50
+                ,minSize:  50
+                ,closable: false
+            },
+            south: {
+                 size:     190
+                ,minSize:  50
+                ,closable: false
+            },
+
         });
 
     });
-
     $(document).ready(function () {
         $('#details').layout( tabLayoutSettings );
     });
 
+var colors = [
+        'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
+        'navy', 'olive', 'purple', 'silver', 'teal', ];
+
     function go(lon, lat, filename, blob_key) {
-/*
         $('#map').html('');
 
         var arrTrackUrls = new Array();
         $(".cbox:checked").each(function(){
             arrTrackUrls.push("/gpxtrack/"+$(this).attr('id'));
         });
-        init(1, lon, lat, 16, arrTrackUrls);
-
- */
+        init(1, lon, lat, 16, arrTrackUrls, colors);
 
         var details = $('#details');
         var arrContainers = [
+            { id : 'container-west'   , class : 'm-west details ui-layout-west'     },
             { id : 'container-center' , class : 'm-center details ui-layout-center' },
             { id : 'container-east'   , class : 'm-east details ui-layout-east'     },
-            { id : 'container-west'   , class : 'm-west details ui-layout-west'     },
         ];
 
         var cId, cElem, cClass;
@@ -216,17 +227,17 @@
 
             var attrs = 'id="'+cId+'" class="'+cClass+'"';
             //console.log('; cElem: '+cElem+'; attrs: '+attrs);
-            if (cElem.length == 0) {
+            if (cElem.html().length == 0) {
                 console.log('Creating: cElem: '+cElem+'; attrs: '+attrs);
-                details.append($('<div '+attrs+'></div>'));
+                var veryOldHtml = details.html();
+                var urlDetails = '/details/'+blob_key;
+                $('#'+cId).load(urlDetails, function() {
+                    console.log('Url loaded: '+urlDetails+'; element id: '+cId);
+                    $('#'+cId+' #file_name').css({'background-color': colors[c], 'color' : 'white' });
+                });
                 break;
             }
         }
-        details.layout( tabLayoutSettings );
-        var urlDetails = '/details/'+blob_key;
-        $('#'+cId).load(urlDetails, function() {
-            console.log('Url loaded: '+urlDetails+'; element id: '+cId);
-        });
     }
 
     $(function() {
@@ -292,12 +303,12 @@
 
     <div class="ui-layout-south">
         <div id="details" style="height:100%">
-            <div id="container-center" class="m-center details ui-layout-center"> center </div>
-            <div id="container-east" class="m-east details ui-layout-east"> east </div>
-            <div id="container-west" class="m-west details ui-layout-west"> west </div>
+            <div id="container-west" class="m-west details ui-layout-west"></div>
+            <div id="container-center" class="m-center details ui-layout-center"></div>
+            <div id="container-east" class="m-east details ui-layout-east"></div>
         </div>
         <button onclick="innerLayout.sizePane('south', 300)">'Open' Pane</button> &nbsp;
-        <button onclick="innerLayout.sizePane('south', 50)">'Close' Pane</button>
+        <button onclick="innerLayout.sizePane('south', 200)">'Close' Pane</button>
     </div>
 
 </div>

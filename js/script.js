@@ -1,11 +1,7 @@
 var map; //complex object of type OpenLayers.Map
 
-var colors = [
-    'aqua', 'black', 'blue', 'fuchsia', 'gray', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'red', 'silver', 'teal', 'white', 'yellow',
-    ];
-
 // Add the Layer with the GPX Track
-function myFn(arr) {
+function myFn(arr, colors) {
     for(var i in arr) {
         if (i >= colors.length) {
             console.error("Cannot display more than "+arr.length+" tracks");
@@ -43,7 +39,7 @@ function myFn(trackUrl) {
 }
 */
 
-function init(cntGpsPositions, lon, lat, zoom, arrUrls) {
+function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
     console.log("arrUrls: "+arrUrls)
     map = new OpenLayers.Map ("map", {
         controls:[
@@ -88,7 +84,7 @@ function init(cntGpsPositions, lon, lat, zoom, arrUrls) {
     for (var i = 0; i < cntGpsPositions; i++) {
         time += time_inc
         setTimeout(
-            function() { myFn(arrUrls) },
+            function() { myFn(arrUrls, colors) },
             time);
         //console.log("Cycle nr: " + i +"; time: "+time);
     }
