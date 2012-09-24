@@ -10,6 +10,20 @@ libraries:
   version: latest
 
 handlers:
+- url: /images
+  static_dir: gpxviewer-read-only/examples/gpxviewer/images
+
+- url: /gpxviewer-read-only
+  static_dir: gpxviewer-read-only
+
+- url: /(.*\.(xml))
+  static_files: gpxviewer-read-only/examples/gpxviewer/\1
+  upload: gpxviewer-read-only/examples/gpxviewer/(.*\.(xml))
+
+- url: /(.*\.(html))
+  static_files: gpxviewer-read-only/examples/gpxviewer/\1
+  upload: gpxviewer-read-only/examples/gpxviewer/(.*\.(html))
+
 - url: /pic
   static_dir: pic
 
