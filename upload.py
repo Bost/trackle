@@ -52,6 +52,7 @@ class TrackDetails(db.Model):
     filename = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
     location = undef
+    waypoints = db.IntegerProperty()
     startLon = db.FloatProperty()
     startLat = db.FloatProperty()
     speed_avrg = db.FloatProperty()
@@ -61,9 +62,9 @@ class TrackDetails(db.Model):
     speed_max = db.FloatProperty()
     total_ascending = undef
     total_descending = undef
-    elevation_gain = db.FloatProperty()
-    elevation_max = undef
-    elevation_min = undef
+    #elevation_gain = db.FloatProperty()
+    elevation_max = db.FloatProperty()
+    elevation_min = db.FloatProperty()
     blob_key = db.StringProperty()
 
 def getFileContent(path):
@@ -155,6 +156,7 @@ class Details(webapp2.RequestHandler):
         speedSum = 0
 
         trackDetails = TrackDetails()
+        trackDetails.waypoints = 0
         rootChildren = root.getChildren()
         for root_c in rootChildren:
             tagName = root_c.getTagName()
@@ -182,6 +184,8 @@ class Details(webapp2.RequestHandler):
                                 lat1 = lat2
                                 lat_degree = float(trkseq_c.getAttribute("lat"))
                                 lat2 = self.deg2rad(lat_degree)
+
+                                trackDetails.waypoints += 1
 
                                 if lat1 == undef:
                                     trackDetails.startLon = lon_degree
@@ -310,6 +314,7 @@ class Details(webapp2.RequestHandler):
 
             'filename' : blob_info.filename,
             'timestamp' : 'timestamp',
+            'waypoints' : trackDetails.waypoints,
             'location' : 'location',
             'speed_avrg' : trackDetails.speed_avrg,
             'duration' : trackDetails.duration,
