@@ -48,21 +48,23 @@ undef = -1
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
-class TrackDetails():
-    file_name = undef
-    timestamp = undef
+class TrackDetails(db.Model):
+    filename = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now_add=True)
     location = undef
-    startLon = undef
-    startLat = undef
-    speed_avrg = undef
-    duration = undef
-    distance = undef
-    speed_max = undef
+    startLon = db.FloatProperty()
+    startLat = db.FloatProperty()
+    speed_avrg = db.FloatProperty()
+    #duration = db.TimeProperty()   # TODO duration needs to be a TimeProperty
+    duration = db.StringProperty()
+    distance = db.FloatProperty()
+    speed_max = db.FloatProperty()
     total_ascending = undef
     total_descending = undef
-    elevation_gain = undef
+    elevation_gain = db.FloatProperty()
     elevation_max = undef
     elevation_min = undef
+    blob_key = db.StringProperty()
 
 def getFileContent(path):
     os_path = os.path.join(os.path.split(__file__)[0], path)
@@ -80,8 +82,8 @@ class MainHandler(webapp2.RequestHandler):
         for b in blobstore.BlobInfo.all():
             bKey = b.key()
             bFilename = b.filename
-            td = details.getStartLocation(bKey)
-            entry = { 'lon' : td.startLon, 'lat' : td.startLat, 'bKey' : bKey , 'bFilename' : bFilename }
+            trackDetails = details.getAllTrackDetails(bKey)
+            entry = { 'lon' : trackDetails.startLon, 'lat' : trackDetails.startLat, 'bKey' : bKey , 'bFilename' : bFilename }
 
             entries.append(entry)
 
@@ -114,6 +116,12 @@ class Details(webapp2.RequestHandler):
         return (pi * float(degree) / 180.0)
 
     def getVal(self, blob_key, vType=1):
+
+        results = db.GqlQuery('SELECT * FROM TrackDetails WHERE blob_key = :1', blob_key)
+        for tdResult in results:
+            logging.info('TrackDetails already calculated. blob_key '+str(blob_key)+'; filename: '+tdResult.filename)
+            return tdResult
+
         blob_reader = blobstore.BlobReader(blob_key)
         inputText = blob_reader.read()
 
@@ -147,11 +155,17 @@ class Details(webapp2.RequestHandler):
         speedSum = 0
 
         trackDetails = TrackDetails()
-
         rootChildren = root.getChildren()
         for root_c in rootChildren:
             tagName = root_c.getTagName()
-            if tagName == "trk":
+            if tagName == "metadata":
+                metadataChildren = root_c.getChildren()
+                for metadata_c in metadataChildren:
+                    tagName = metadata_c.getTagName()
+                    if tagName == "name":
+                        trackDetails.filename = metadata_c.getElementValue()
+
+            elif tagName == "trk":
                 trkChildren = root_c.getChildren()
                 for trk_c in trkChildren:
                     tagName = trk_c.getTagName()
@@ -169,7 +183,7 @@ class Details(webapp2.RequestHandler):
                                 lat_degree = float(trkseq_c.getAttribute("lat"))
                                 lat2 = self.deg2rad(lat_degree)
 
-                                if trackDetails.startLon == undef:
+                                if lat1 == undef:
                                     trackDetails.startLon = lon_degree
                                     trackDetails.startLat = lat_degree
 
@@ -205,8 +219,8 @@ class Details(webapp2.RequestHandler):
                                         time2 = parse(trkpt_c.getElementValue())
 
                                         if time1 != undef and time2 != undef:
-                                            td = (time2 - time1)
-                                            minutes = (float(td.seconds) / 60)
+                                            timeDiff = (time2 - time1)
+                                            minutes = (float(timeDiff.seconds) / 60)
                                             timeDelta = float(minutes / 60.0)
                                             if timeDelta == 0:
                                                 sLon = str(lon_degree)
@@ -229,11 +243,12 @@ class Details(webapp2.RequestHandler):
                                             # date parsing is done only the after the xml parsing
                                             valStop = time
 
+
         if vType == vDuration or vType == vAllValues:
             stop = parse(valStop)
             duration = (stop - start)
             logging.info('duration: '+str(duration))
-            trackDetails.duration = duration
+            trackDetails.duration = str(duration)
 
         if vType == vDistance or vType == vAllValues:
             logging.info('distance: '+str(distanceTotal))
@@ -251,6 +266,12 @@ class Details(webapp2.RequestHandler):
         if vType == vSpeedAvrg or vType == vAllValues:
             trackDetails.speed_avrg = float(speedSum / cntMeasurements)
             logging.info('speed_avrg: '+str(trackDetails.speed_avrg))
+
+        trackDetails.blob_key = str(blob_key)
+        key = trackDetails.put();
+        msg  = 'Track details put to datastore'
+        msg += '; blob_key: '+str(trackDetails.blob_key)+'; filename: '+trackDetails.filename
+        logging.info(msg)
 
         return trackDetails
 
@@ -281,22 +302,22 @@ class Details(webapp2.RequestHandler):
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
 
-        td = self.getAllTrackDetails(blob_key)
+        trackDetails = self.getAllTrackDetails(blob_key)
 
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
 
-            'file_name' : blob_info.filename,
+            'filename' : blob_info.filename,
             'timestamp' : 'timestamp',
             'location' : 'location',
-            'speed_avrg' : td.speed_avrg,
-            'duration' : td.duration,
-            'distance' : td.distance,
-            'speed_max' : td.speed_max,
+            'speed_avrg' : trackDetails.speed_avrg,
+            'duration' : trackDetails.duration,
+            'distance' : trackDetails.distance,
+            'speed_max' : trackDetails.speed_max,
             'total_ascending' : 'total_ascending',
             'total_descending' : 'total_descending',
-            'elevation_gain' : (td.elevation_max - td.elevation_min),
+            'elevation_gain' : (trackDetails.elevation_max - trackDetails.elevation_min),
 
             'distanceUnits' : distanceUnits,
             'elevationUnits' : elevationUnits,

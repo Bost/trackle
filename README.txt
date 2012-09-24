@@ -1,4 +1,5 @@
 start local develompment server
+dev_appserver.py --clear_datastore helloworld/
 dev_appserver.py --debug helloworld/
 dev_appserver.py --debug --clear_datastore --blobstore_path=~/gae/blobstore_dir --datastore_path=~/gae/datastore_file helloworld/
 dev_appserver.py --clear_datastore --blobstore_path=~/gae/blobstore_dir --datastore_path=~/gae/datastore_file helloworld/

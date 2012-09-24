@@ -233,7 +233,7 @@ var colors = [
                 var urlDetails = '/details/'+blob_key;
                 $('#'+cId).load(urlDetails, function() {
                     console.log('Url loaded: '+urlDetails+'; element id: '+cId);
-                    $('#'+cId+' #file_name').css({'background-color': colors[c], 'color' : 'white' });
+                    $('#'+cId+' #filename').css({'background-color': colors[c], 'color' : 'white' });
                 });
                 break;
             }
