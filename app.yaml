@@ -10,6 +10,9 @@ libraries:
   version: latest
 
 handlers:
+- url: /pic
+  static_dir: pic
+
 - url: /css
   static_dir: css
 
