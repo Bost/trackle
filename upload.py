@@ -66,6 +66,7 @@ class TrackDetails(db.Model):
     elevation_max = db.FloatProperty()
     elevation_min = db.FloatProperty()
     blob_key = db.StringProperty()
+    time = db.StringProperty()
 
 def getFileContent(path):
     os_path = os.path.join(os.path.split(__file__)[0], path)
@@ -82,20 +83,26 @@ class MainHandler(webapp2.RequestHandler):
         entries = []
         for b in blobstore.BlobInfo.all():
             bKey = b.key()
-            bFilename = b.filename
-            trackDetails = details.getAllTrackDetails(bKey)
-            entry = { 'lon' : trackDetails.startLon, 'lat' : trackDetails.startLat, 'bKey' : bKey , 'bFilename' : bFilename }
+            td = details.getAllTrackDetails(bKey)
+            # 2012-08-23T15:27:01.000Z
+            cn  = td.time[8:10] + '.'
+            cn += td.time[5:7] + '.'
+            cn += td.time[0:4] + ' '
+            cn += td.time[11:16]
 
+            entry = { 'lon' : td.startLon, 'lat' : td.startLat, 'bKey' : bKey , 'bFilename' : cn, 'time' : td.time }
             entries.append(entry)
 
-        logging.info('entries: '+ str(entries))
+        sorted_entries = sorted(entries, key=lambda a_entry: a_entry['time'])
+
+        logging.info('entries: '+ str(sorted_entries))
 
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
-            'entries' : entries,
+            'entries' : sorted_entries,
             'url_maplayer' : 'maplayer',
             'url_delete' : 'delete',
             'url_download' : 'download',
@@ -166,6 +173,8 @@ class Details(webapp2.RequestHandler):
                     tagName = metadata_c.getTagName()
                     if tagName == "name":
                         trackDetails.filename = metadata_c.getElementValue()
+                    elif tagName == "time":
+                        trackDetails.time = metadata_c.getElementValue()
 
             elif tagName == "trk":
                 trkChildren = root_c.getChildren()
