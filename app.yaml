@@ -39,6 +39,9 @@ handlers:
 - url: /gpxtrack/.*
   script: gps.app
 
+- url: /lout/.*
+  script: upload.app
+
 - url: /details/.*
   script: upload.app
 

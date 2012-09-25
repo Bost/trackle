@@ -23,21 +23,6 @@ function myFn(arr, colors) {
         map.addLayer(lgpx);
     }
 }
-/*
-function myFn(trackUrl) {
-    var lgpx0 = new OpenLayers.Layer.Vector("", {
-        strategies: [new OpenLayers.Strategy.Fixed()],
-        protocol: new OpenLayers.Protocol.HTTP({
-            url: trackUrl,
-            //url: '/gpxtrack/N3gkKLXXN6XDMBmz8NG4cw==',
-            format: new OpenLayers.Format.GPX()
-        }),
-        style: {strokeColor: "green", strokeWidth: 5, strokeOpacity: 0.7},
-        projection: new OpenLayers.Projection("EPSG:4326")
-    });
-    map.addLayer(lgpx0);
-}
-*/
 
 function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
     console.log("arrUrls: "+arrUrls)
@@ -77,7 +62,7 @@ function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
     // Wait a little in oder to downloaded the map for the 1st time.
     // This is probably not the right way to do it
     //setTimeout(function() {}, 1000);
-
+/*
     var time_inc = 500   // in milisec
     var time = 0
 
@@ -87,6 +72,27 @@ function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
             function() { myFn(arrUrls, colors) },
             time);
         //console.log("Cycle nr: " + i +"; time: "+time);
+    }
+*/
+    for(var i in arrUrls) {
+        if (i >= colors.length) {
+            console.error("Cannot display more than "+arr.length+" tracks");
+            break;
+        }
+        var trackUrl = arrUrls[i];
+        var color = colors[i];
+        //console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+
+        var lgpx = new OpenLayers.Layer.Vector("", {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: trackUrl,
+                format: new OpenLayers.Format.GPX()
+            }),
+            style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
+            projection: new OpenLayers.Projection("EPSG:4326")
+        });
+        map.addLayer(lgpx);
     }
 }
 

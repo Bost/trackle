@@ -76,6 +76,12 @@ def getFileContent(path):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
+        x = X()
+        s = x.get(undef)
+        self.response.out.write(s)
+
+class X(webapp2.RequestHandler):
+    def get(self, blob_key):
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
 
@@ -90,13 +96,22 @@ class MainHandler(webapp2.RequestHandler):
             cn += td.time[0:4] + ' '
             cn += td.time[11:16]
 
-            entry = { 'lon' : td.startLon, 'lat' : td.startLat, 'bKey' : bKey , 'bFilename' : cn, 'time' : td.time }
+            entry = { 'lon' : td.startLon, 'lat' : td.startLat, 'bKey' : str(bKey),
+                    'bFilename' : cn, 'time' : td.time, 'id' : 'id'+str(len(entries))}
             entries.append(entry)
 
         sorted_entries = sorted(entries, key=lambda a_entry: a_entry['time'])
 
-        logging.info('entries: '+ str(sorted_entries))
+        displId = ''
+        if blob_key == undef:
+            displId = 'id1'
+        else:
+            for e in entries:
+                if blob_key == e['bKey']:
+                    displId = e['id']
 
+
+        logging.info('entries: '+ str(sorted_entries))
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
@@ -107,11 +122,14 @@ class MainHandler(webapp2.RequestHandler):
             'url_delete' : 'delete',
             'url_download' : 'download',
             'url_details' : 'details',
+            'display_entry_id' : displId,
         }
         template = jinja_environment.get_template('/templates/layout.html')
-        #template = jinja_environment.get_template('/templates/uploadsite.html')
         s = template.render(templateVals)
-        self.response.out.write(s)
+        if blob_key == undef:
+            return s
+        else:
+            self.response.out.write(s)
 
 
 class Details(webapp2.RequestHandler):
@@ -418,7 +436,8 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
 
         # display the gpxtrack on the maplayer
-        self.redirect('/maplayer/'+str(blob_key))
+        #self.redirect('/maplayer/'+str(blob_key))
+        self.redirect('/lout/'+str(blob_key))
 
     #def handle_exception(self, exception, debug_mode):
         #if debug_mode:
@@ -435,6 +454,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 def main():
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
+        ('/lout/([^/]+)?', X),
         ('/details/([^/]+)?', Details),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),

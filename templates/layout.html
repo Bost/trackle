@@ -195,21 +195,31 @@
 
         });
 
-    });
-    $(document).ready(function () {
         $('#details').layout( tabLayoutSettings );
+
+        // these four function calls make up the only way how to set the
+        // checkbox to 'checked' and show the track
+        var selector = '#{{ display_entry_id }}';
+        //var selector = '.cbox:first';
+        console.log('$( "'+selector+'" ).length: '+$(selector).length);
+        $(selector).prop("checked", true);
+        $(selector).click();
+        $(selector).prop("checked", true);
+        $(".cbox").button();
+
     });
 
 var colors = [
         'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
         'navy', 'olive', 'purple', 'silver', 'teal', ];
 
-    function go(lon, lat, filename, blob_key) {
+    // TODO remove side dependence of function go(..) on $('.cbox:checked')
+    function go(lon, lat, blob_key) {
         $('#map').html('');
 
         var arrTrackUrls = new Array();
         $(".cbox:checked").each(function(){
-            arrTrackUrls.push("/gpxtrack/"+$(this).attr('id'));
+            arrTrackUrls.push("/gpxtrack/"+$(this).attr('value'));
         });
         init(1, lon, lat, 16, arrTrackUrls, colors);
 
@@ -240,10 +250,6 @@ var colors = [
             }
         }
     }
-
-    $(function() {
-        $( ".cbox" ).button();
-    });
     </script>
     <style>
         #format { margin-top: 2em; }
@@ -277,8 +283,8 @@ var colors = [
     <div class="ui-widget" id="format">
         {% for e in entries %}
         <div>
-            <input type="checkbox" onclick="go({{ e.lon }}, {{ e.lat }}, '{{ e.bFilename }}', '{{ e.bKey }}')" class="cbox" id="{{ e.bKey }}" />
-            <label for="{{ e.bKey }}">{{ e.bFilename }}</label>
+            <input type="checkbox" onclick="go({{ e.lon }}, {{ e.lat }}, '{{ e.bKey }}')" class="cbox" value="{{ e.bKey }}" id="{{ e.id }}" />
+            <label for="{{ e.id }}">{{ e.bFilename }}</label>
         </div>
         {% endfor %}
     </div>
