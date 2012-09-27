@@ -39,8 +39,19 @@ handlers:
 - url: /gpxtrack/.*
   script: gps.app
 
+####
+- url: /lout/pic
+  static_dir: pic
+
+- url: /lout/css
+  static_dir: css
+
+- url: /lout/js
+  static_dir: js
+
 - url: /lout/.*
   script: upload.app
+####
 
 - url: /details/.*
   script: upload.app

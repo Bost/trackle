@@ -48,6 +48,12 @@ undef = -1
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
+def getFileContent(path):
+    os_path = os.path.join(os.path.split(__file__)[0], path)
+    s = file(os_path, 'r').read()
+    #logging.info('-----------------s: '+s)
+    return s
+
 class TrackDetails(db.Model):
     filename = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
@@ -67,12 +73,6 @@ class TrackDetails(db.Model):
     elevation_min = db.FloatProperty()
     blob_key = db.StringProperty()
     time = db.StringProperty()
-
-def getFileContent(path):
-    os_path = os.path.join(os.path.split(__file__)[0], path)
-    s = file(os_path, 'r').read()
-    #logging.info('-----------------s: '+s)
-    return s
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -411,14 +411,16 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
             # domTree is a minidom document object
             #domTree = domTreeWrapper.getTree()
 
+
             # call validator with non-default values
-            pyxsval.parseAndValidateString(
-                inputText, xsdText,
+#            pyxsval.parseAndValidateString(
+#                inputText, xsdText,
                 #xmlIfClass= pyxsval.XMLIF_ELEMENTTREE,
                 #warningProc=pyxsval.PRINT_WARNINGS,
                 #errorLimit=200, verbose=1,
                 #useCaching=0, processXInclude=0
-                )
+#                )
+            logging.info('parseAndValidateString done')
 
         except pyxsval.XsvalError, errstr:
             print errstr
