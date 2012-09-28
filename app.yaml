@@ -40,16 +40,16 @@ handlers:
   script: gps.app
 
 ####
-- url: /lout/pic
+- url: /track/pic
   static_dir: pic
 
-- url: /lout/css
+- url: /track/css
   static_dir: css
 
-- url: /lout/js
+- url: /track/js
   static_dir: js
 
-- url: /lout/.*
+- url: /track/.*
   script: upload.app
 ####
 

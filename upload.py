@@ -45,8 +45,12 @@ timeUnits = '[ hh:mm:ss ]'
 R = 6371
 undef = -1
 
+global isDevelopment
+isDevelopment = False
+
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
+
 
 def getFileContent(path):
     os_path = os.path.join(os.path.split(__file__)[0], path)
@@ -76,11 +80,11 @@ class TrackDetails(db.Model):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        x = X()
-        s = x.get(undef)
+        trackLoader = TrackLoader()
+        s = trackLoader.get(undef)
         self.response.out.write(s)
 
-class X(webapp2.RequestHandler):
+class TrackLoader(webapp2.RequestHandler):
     def get(self, blob_key):
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
@@ -385,61 +389,62 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
 
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
-        resource = str(urllib.unquote(resource))
-
-        if not blobstore.get(resource):
-            self.error(404)
-            return
-
+        global isDevelopment
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
-        #for b in blobstore.BlobInfo.all():
-            #blob_key = b.key()
-        blob_reader = blobstore.BlobReader(blob_key)
-        inputText = blob_reader.read()
 
-        # TODO The gpx.xsd cannot be placed in a subdirectory - why?
-        xsdText = getFileContent('gpx.xsd')
+        if isDevelopment:
+            # TODO run xml validation in background from task queue
+            logging.debug('isDevelopment: '+str(isDevelopment)+' => no xml validation')
+        else:
+            resource = str(urllib.unquote(resource))
+            if not blobstore.get(resource):
+                self.error(404)
+                return
 
-        logging.info('XSD file read in.')
+            #for b in blobstore.BlobInfo.all():
+                #blob_key = b.key()
+            blob_reader = blobstore.BlobReader(blob_key)
+            inputText = blob_reader.read()
 
-        try:
-            # use default values of minixsv, location of the schema file must
-            # be specified in the XML file
-            #domTreeWrapper = pyxsval .parseAndValidate ("Test.xml")
+            # TODO The gpx.xsd cannot be placed in a subdirectory - why?
+            xsdText = getFileContent('gpx.xsd')
+            logging.info('XSD file read in')
 
-            # domTree is a minidom document object
-            #domTree = domTreeWrapper.getTree()
+            try:
+                # use default values of minixsv, location of the schema file must
+                # be specified in the XML file
+                #domTreeWrapper = pyxsval .parseAndValidate ("Test.xml")
 
+                # domTree is a minidom document object
+                #domTree = domTreeWrapper.getTree()
 
-            # call validator with non-default values
-#            pyxsval.parseAndValidateString(
-#                inputText, xsdText,
-                #xmlIfClass= pyxsval.XMLIF_ELEMENTTREE,
-                #warningProc=pyxsval.PRINT_WARNINGS,
-                #errorLimit=200, verbose=1,
-                #useCaching=0, processXInclude=0
-#                )
-            logging.info('parseAndValidateString done')
+                # call validator with non-default values
+                pyxsval.parseAndValidateString(
+                    inputText, xsdText,
+                    #xmlIfClass= pyxsval.XMLIF_ELEMENTTREE,
+                    #warningProc=pyxsval.PRINT_WARNINGS,
+                    #errorLimit=200, verbose=1,
+                    #useCaching=0, processXInclude=0
+                    )
+                logging.info('parseAndValidateString done')
 
-        except pyxsval.XsvalError, errstr:
-            print errstr
-            logging.error("Validation aborted!")
+            except pyxsval.XsvalError, errstr:
+                print errstr
+                logging.error("Validation aborted!")
 
-        except GenXmlIfError, errstr:
-            print errstr
-            logging.error("Parsing aborted!")
+            except GenXmlIfError, errstr:
+                print errstr
+                logging.error("Parsing aborted!")
 
-        except db.Timeout, errstr:
-            #except (db.Timeout, db.InternalError):
-            #except datastore_errors.Timeout, errstr:
-            print errstr
-            logging.error('Timeout-specific error page')
+            except db.Timeout, errstr:
+                #except (db.Timeout, db.InternalError):
+                #except datastore_errors.Timeout, errstr:
+                print errstr
+                logging.error('Timeout-specific error page')
 
-
-        # display the gpxtrack on the maplayer
-        #self.redirect('/maplayer/'+str(blob_key))
-        self.redirect('/lout/'+str(blob_key))
+        # display the gpxtrack using the layout template
+        self.redirect('/track/'+str(blob_key))
 
     #def handle_exception(self, exception, debug_mode):
         #if debug_mode:
@@ -452,11 +457,15 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                 ## Display a generic 500 error page.
                 #logging.error('generic 500 error page')
 
-
 def main():
+    global isDevelopment
+    isDevelopment = os.environ['SERVER_SOFTWARE'].startswith('Development')
+    logging.info('isDevelopment: '+str(isDevelopment))
+    #for name in os.environ.keys():
+        #self.response.out.write("%s = %s<br />\n" % (name, os.environ[name]))
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
-        ('/lout/([^/]+)?', X),
+        ('/track/([^/]+)?', TrackLoader),
         ('/details/([^/]+)?', Details),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),
