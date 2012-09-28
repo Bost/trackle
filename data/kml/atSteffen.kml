@@ -1,0 +1,23 @@
+<kml xmlns="http://earth.google.com/kml/2.0">
+  <Folder>
+    <name>2007-11-26:20:48:53</name>
+    <open>1</open>
+    <Placemark>
+      <description>2007-11-26:20:48:53</description>
+      <name>2007-11-26:20:48:53</name>
+      <styleUrl>root://styleMaps#default+nicon=0x467+hicon=0x477</styleUrl>
+      <Style>
+        <LineStyle id="khLineStyle989">
+        <color>7f0000ff</color>
+        <width>4</width>
+        </LineStyle>
+      </Style>
+      <LineString>
+        <tessellate>1</tessellate>
+        <coordinates>
+ 9.16819, 48.69419, 0.000000      
+        </coordinates>
+        </LineString>
+      </Placemark>
+     </Folder>
+</kml>
