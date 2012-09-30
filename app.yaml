@@ -53,6 +53,9 @@ handlers:
   script: upload.app
 ####
 
+- url: /details/[^/]+?show=true|false
+  script: upload.app
+
 - url: /details/.*
   script: upload.app
 

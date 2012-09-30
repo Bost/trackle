@@ -23,21 +23,18 @@
         font-size: small;
     }
 
-    .details {
+    .details, .detailLabels, .detailValues {
         font-size: smaller;
     }
-    .detailsLine, .detailsLabel, .detailValue {
+    .detailLabels, .detailValues {
+        height: 8em;
         float: left;
     }
-    .detailsLine {
-        height: 1.1em;
-        width: 100%
+    .detailLabels {
+        width: 11.7em;
     }
-    .detailsLabel {
-        width: 12em;
-    }
-    .detailValue {
-        width: 23em;
+    .detailValues {
+        width: 21em;
     }
     /**
      *    Basic Layout Theme
@@ -226,7 +223,7 @@ var colors = [
         'navy', 'olive', 'purple', 'silver', 'teal', ];
 
     // TODO remove side dependence of function go(..) on $('.cbox:checked')
-    function go(lon, lat, blob_key) {
+    function go(lon, lat, blob_key, id) {
         $('#map').html('');
 
         var arrTrackUrls = new Array();
@@ -235,7 +232,9 @@ var colors = [
         });
         init(1, lon, lat, 16, arrTrackUrls, colors);
 
-        var urlDetails = '/details/'+blob_key;
+        var show = $('#'+id).prop('checked');
+        console.log('show: '+show);
+        var urlDetails = '/details/'+blob_key+'?show='+show;
         var details = $('#details');
         details.load(urlDetails, function() {
             console.log('Url loaded: '+urlDetails);
@@ -302,7 +301,7 @@ var colors = [
     <div class="ui-widget" id="format">
         {% for e in entries %}
         <div>
-            <input type="checkbox" onclick="go({{ e.lon }}, {{ e.lat }}, '{{ e.bKey }}')" class="cbox" value="{{ e.bKey }}" id="{{ e.id }}" />
+            <input type="checkbox" onclick="go({{ e.lon }}, {{ e.lat }}, '{{ e.bKey }}', '{{ e.id }}')" class="cbox" value="{{ e.bKey }}" id="{{ e.id }}" />
             <label for="{{ e.id }}">{{ e.bFilename }}</label>
         </div>
         {% endfor %}
@@ -329,12 +328,6 @@ var colors = [
 
     <div class="ui-layout-south">
         <div id="details" style="height:100%">
-            
-            <!--
-            <div id="container-west" class="m-west details ui-layout-west"></div>
-            <div id="container-center" class="m-center details ui-layout-center"></div>
-            <div id="container-east" class="m-east details ui-layout-east"></div>
-            -->
         </div>
         <button onclick="innerLayout.sizePane('south', 300)">'Open' Pane</button> &nbsp;
         <button onclick="innerLayout.sizePane('south', 200)">'Close' Pane</button>

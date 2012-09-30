@@ -48,6 +48,9 @@ undef = -1
 global isDevelopment
 isDevelopment = False
 
+global trackDisplay
+trackDisplay = []
+
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -78,6 +81,11 @@ class TrackDetails(db.Model):
     blob_key = db.StringProperty()
     time = db.StringProperty()
 
+# TODO track display
+class TrackDisplay(db.Model):
+    blob_key = db.StringProperty()
+    show = db.BooleanProperty()
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         trackLoader = TrackLoader()
@@ -91,7 +99,7 @@ class TrackLoader(webapp2.RequestHandler):
 
         details = Details()
         entries = []
-        for b in blobstore.BlobInfo.all():
+        for b in all_blobs:
             bKey = b.key()
             td = details.getAllTrackDetails(bKey)
             # 2012-08-23T15:27:01.000Z
@@ -115,7 +123,7 @@ class TrackLoader(webapp2.RequestHandler):
                     displId = e['id']
 
 
-        logging.info('entries: '+ str(sorted_entries))
+        #logging.info('entries: '+ str(sorted_entries))
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
@@ -334,31 +342,60 @@ class Details(webapp2.RequestHandler):
 
     def get(self, resource):
         resource = str(urllib.unquote(resource))
+        show = self.request.GET.get('show')
+        global trackDisplay
+        logging.info('---------------------- '+str(show))
+        logging.info('---------------------- '+str(trackDisplay))
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
+        for d in trackDisplay:
+            if blob_key == d['bKey']:
+                if show == 'true':
+                    d['display'] = True
+                elif show == 'false':
+                    d['display'] = False
+                else:
+                    logging.error('true/false')
+                break
 
-        trackDetails = self.getAllTrackDetails(blob_key)
+
+
+        #trackDetails = self.getAllTrackDetails(blob_key)
+
+        all_blobs = blobstore.BlobInfo.all()
+
+        details = Details()
+        tracks = []
+        #for b in all_blobs:
+        for b in trackDisplay:
+            #bKey = b.key()
+            bKey = b['bKey']
+            logging.info('---------------------- '+str(b))
+            if b['display'] == True:
+                td = details.getAllTrackDetails(bKey)
+                tdValues = {
+                    'filename' : td.filename,
+                    'timestamp' : 'timestamp',
+                    'waypoints' : td.waypoints,
+                    'location' : 'location',
+                    'speed_avrg' : td.speed_avrg,
+                    'duration' : td.duration,
+                    'distance' : td.distance,
+                    'speed_max' : td.speed_max,
+                    'total_ascending' : 'total_ascending',
+                    'total_descending' : 'total_descending',
+                    'elevation_gain' : (td.elevation_max - td.elevation_min),
+                }
+                tracks.append(tdValues)
 
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
-
-            'filename' : blob_info.filename,
-            'timestamp' : 'timestamp',
-            'waypoints' : trackDetails.waypoints,
-            'location' : 'location',
-            'speed_avrg' : trackDetails.speed_avrg,
-            'duration' : trackDetails.duration,
-            'distance' : trackDetails.distance,
-            'speed_max' : trackDetails.speed_max,
-            'total_ascending' : 'total_ascending',
-            'total_descending' : 'total_descending',
-            'elevation_gain' : (trackDetails.elevation_max - trackDetails.elevation_min),
-
             'distanceUnits' : distanceUnits,
             'elevationUnits' : elevationUnits,
             'speedUnits' : speedUnits,
-        }
+            'tracks' : tracks,
+            }
         template = jinja_environment.get_template('/templates/details.html')
         #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
@@ -390,8 +427,11 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
         global isDevelopment
+        global trackDisplay
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
+
+        trackDisplay.append({ 'bKey' : blob_key, 'display' : True})
 
         if isDevelopment:
             # TODO run xml validation in background from task queue
@@ -467,6 +507,7 @@ def main():
         ('/', MainHandler),
         ('/track/([^/]+)?', TrackLoader),
         ('/details/([^/]+)?', Details),
+        ('/details/([^/]+)?show=(true|false)', Details),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),
         ('/upload_handler', UploadHandler),
