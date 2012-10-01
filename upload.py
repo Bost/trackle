@@ -94,6 +94,7 @@ class MainHandler(webapp2.RequestHandler):
 
 class TrackLoader(webapp2.RequestHandler):
     def get(self, blob_key):
+        logging.info('TrackLoader <')
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
 
@@ -138,6 +139,7 @@ class TrackLoader(webapp2.RequestHandler):
         }
         template = jinja_environment.get_template('/templates/layout.html')
         s = template.render(templateVals)
+        logging.info('TrackLoader >')
         if blob_key == undef:
             return s
         else:
@@ -154,10 +156,12 @@ class Details(webapp2.RequestHandler):
         return (pi * float(degree) / 180.0)
 
     def getVal(self, blob_key, vType=1):
+        logging.info('Details.getVal <')
 
         results = db.GqlQuery('SELECT * FROM TrackDetails WHERE blob_key = :1', blob_key)
         for tdResult in results:
             logging.info('TrackDetails already calculated. blob_key '+str(blob_key)+'; filename: '+tdResult.filename)
+            logging.info('Details.getVal >')
             return tdResult
 
         blob_reader = blobstore.BlobReader(blob_key)
@@ -316,6 +320,7 @@ class Details(webapp2.RequestHandler):
         msg += '; blob_key: '+str(trackDetails.blob_key)+'; filename: '+trackDetails.filename
         logging.info(msg)
 
+        logging.info('Details.getVal >')
         return trackDetails
 
 
@@ -341,11 +346,10 @@ class Details(webapp2.RequestHandler):
         return self.getVal(blob_key, vDistance)
 
     def get(self, resource):
+        logging.info('Details.get <')
         resource = str(urllib.unquote(resource))
         show = self.request.GET.get('show')
         global trackDisplay
-        logging.info('---------------------- '+str(show))
-        logging.info('---------------------- '+str(trackDisplay))
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
         for d in trackDisplay:
@@ -357,7 +361,6 @@ class Details(webapp2.RequestHandler):
                 else:
                     logging.error('true/false')
                 break
-
 
 
         #trackDetails = self.getAllTrackDetails(blob_key)
@@ -399,6 +402,8 @@ class Details(webapp2.RequestHandler):
         template = jinja_environment.get_template('/templates/details.html')
         #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
+        logging.info('Details.get >')
+
 
 
 class Delete(webapp2.RequestHandler):
@@ -426,10 +431,14 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
 
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
+        logging.info('ServeHandler.get <')
         global isDevelopment
         global trackDisplay
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
+
+        for td in trackDisplay:
+            td['display'] = False       # display only the new loaded track details
 
         trackDisplay.append({ 'bKey' : blob_key, 'display' : True})
 
@@ -485,6 +494,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
         # display the gpxtrack using the layout template
         self.redirect('/track/'+str(blob_key))
+        logging.info('ServeHandler.get >')
 
     #def handle_exception(self, exception, debug_mode):
         #if debug_mode:
@@ -498,6 +508,7 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
                 #logging.error('generic 500 error page')
 
 def main():
+    logging.info('main <')
     global isDevelopment
     isDevelopment = os.environ['SERVER_SOFTWARE'].startswith('Development')
     logging.info('isDevelopment: '+str(isDevelopment))
@@ -514,6 +525,7 @@ def main():
         ('/servefile/([^/]+)?', ServeHandler),
         ], debug=True)
     #run_wsgi_app(application)
+    logging.info('main >')
     return application
 
 if __name__ == '__main__':

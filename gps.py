@@ -106,6 +106,7 @@ class Store(webapp2.RequestHandler):
 
 class MapLayer(webapp2.RequestHandler):
     def get(self, resource):
+        logging.info('MapLayer <')
         resource = str(urllib.unquote(resource))
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
@@ -133,6 +134,8 @@ class MapLayer(webapp2.RequestHandler):
         template = jinja_environment.get_template('/templates/maplayer.html')
         #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
+        logging.info('MapLayer >')
+
 
 
 class TrackFromDBase(webapp2.RequestHandler):
@@ -174,14 +177,14 @@ class TrackFromDBase(webapp2.RequestHandler):
 # This class is called indirectly from javascript
 class GpxTrack(webapp2.RequestHandler):
     def get(self, resource):
-        logging.info('GpxTrack {')
+        logging.info('GpxTrack <')
         resource = str(urllib.unquote(resource))
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
         blob_reader = blobstore.BlobReader(blob_key)
         respData = blob_reader.read()
         self.response.out.write(respData)
-        logging.info('GpxTrack }')
+        logging.info('GpxTrack >')
 
 
 class Email(webapp2.RequestHandler):
