@@ -41,6 +41,9 @@ elevationUnits = '[ m ]'
 speedUnits = '[ km/h ]'
 timeUnits = '[ hh:mm:ss ]'
 
+
+detailId_prefix = 'detail'
+
 # Earth radius in kilometer
 R = 6371
 undef = -1
@@ -100,7 +103,7 @@ class TrackLoader(webapp2.RequestHandler):
 
         details = Details()
         entries = []
-        for b in all_blobs:
+        for idx, b in enumerate(all_blobs):
             bKey = b.key()
             td = details.getAllTrackDetails(bKey)
             # 2012-08-23T15:27:01.000Z
@@ -109,8 +112,17 @@ class TrackLoader(webapp2.RequestHandler):
             cn += td.time[0:4] + ' '
             cn += td.time[11:16]
 
-            entry = { 'lon' : td.startLon, 'lat' : td.startLat, 'bKey' : str(bKey),
-                    'bFilename' : cn, 'time' : td.time, 'id' : 'id'+str(len(entries))}
+            entry = {
+                    'lon' : td.startLon,
+                    'lat' : td.startLat,
+                    'bKey' : str(bKey),
+                    'bFilename' : cn,
+                    'time' : td.time,
+                    'id' : 'id'+str(len(entries)),  # TODO is this the blob-id to display?
+                    'idx' : idx,
+                    'cboxId' : 'cbox'+str(idx),
+                    'detailId' : detailId_prefix+str(idx),
+                }
             entries.append(entry)
 
         sorted_entries = sorted(entries, key=lambda a_entry: a_entry['time'])
@@ -370,13 +382,13 @@ class Details(webapp2.RequestHandler):
         details = Details()
         tracks = []
         #for b in all_blobs:
-        for b in trackDisplay:
+        for idx, b in enumerate(trackDisplay):
             #bKey = b.key()
             bKey = b['bKey']
-            logging.info('---------------------- '+str(b))
             if b['display'] == True:
                 td = details.getAllTrackDetails(bKey)
                 tdValues = {
+                    'detailId' : detailId_prefix+str(idx),
                     'filename' : td.filename,
                     'timestamp' : 'timestamp',
                     'waypoints' : td.waypoints,
