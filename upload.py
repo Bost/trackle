@@ -65,7 +65,7 @@ def getFileContent(path):
     #logging.info('-----------------s: '+s)
     return s
 
-class TrackDetails(db.Model):
+class TrackValues(db.Model):
     filename = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now_add=True)
     location = undef
@@ -92,22 +92,23 @@ class TrackDisplay(db.Model):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        trackLoader = TrackLoader()
-        s = trackLoader.get(undef)
+        Display = Display()
+        s = Display.get(undef)
         self.response.out.write(s)
 
-class TrackLoader(webapp2.RequestHandler):
+# TODO Display should consist of displayMap and displayDetails
+class Display(webapp2.RequestHandler):
     def get(self, blob_key):
         global trackDisplay
-        logging.info('TrackLoader <')
+        logging.info('Display <')
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
 
-        details = Details()
-        entries = []
+        values = TrackValuesCalculator()
+        mapEntries = []
         for idx, b in enumerate(all_blobs):
             bKey = b.key()
-            td = details.getAllTrackDetails(bKey)
+            td = values.getAllTrackValues(bKey)
             # 2012-08-23T15:27:01.000Z
             cn  = td.time[8:10] + '.'
             cn += td.time[5:7] + '.'
@@ -118,55 +119,65 @@ class TrackLoader(webapp2.RequestHandler):
             else:
                 color = trackDisplay[idx]['color']
 
-            entry = {
+            mapEntry = {
                     'lon' : td.startLon,
                     'lat' : td.startLat,
                     'bKey' : str(bKey),
                     'bFilename' : cn,
                     'time' : td.time,
-                    'id' : 'id'+str(len(entries)),  # TODO is this the blob-id to display?
                     'idx' : idx,
                     'cboxId' : 'cbox'+str(idx),
                     'detailId' : detailId_prefix+str(idx),
                     'color' : color,
                 }
-            entries.append(entry)
+            mapEntries.append(mapEntry)
 
-        sorted_entries = entries
-        #sorted_entries = sorted(entries, key=lambda a_entry: a_entry['time'])
+        sortedMapEntries = mapEntries
+        #sortedMapEntries = sorted(mapEntries, key=lambda a_entry: a_entry['time'])
 
         displId = ''
+        #for d in trackDisplay:
+            #if blob_key == d['bKey']:
+                #if show == 'true':
+                    #d['display'] = True
+                #elif show == 'false':
+                    #d['display'] = False
+                #else:
+                    #s  = "Unrecognized value of 'show': "+str(show)+". "
+                    #s += "Expecting true or false"
+                    #logging.error(s)
+                #break
         if blob_key == undef:
-            displId = cboxId_prefix+str(len(entries) - 1)
+            displId = cboxId_prefix+str(len(mapEntries) - 1)
         else:
-            for e in entries:
+            for e in mapEntries:
                 if blob_key == e['bKey']:
                     displId = e['cboxId']
 
 
-        #logging.info('entries: '+ str(sorted_entries))
+        #logging.info('mapEntries: '+ str(sortedMapEntries))
         templateVals = {
             'doctype' : doctype,
             'meta_tag' : meta_tag,
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
-            'entries' : sorted_entries,
+            'entries' : sortedMapEntries,
             'url_maplayer' : 'maplayer',
             'url_delete' : 'delete',
             'url_download' : 'download',
-            'url_details' : 'details',
+            'url_details' : 'values',
             'display_entry_id' : displId,
         }
         template = jinja_environment.get_template('/templates/layout.html')
         s = template.render(templateVals)
-        logging.info('TrackLoader >')
+        logging.info('Display >')
         if blob_key == undef:
             return s
         else:
             self.response.out.write(s)
 
 
-class Details(webapp2.RequestHandler):
+class TrackValuesCalculator(webapp2.RequestHandler):
     def calcSpeed(self, distance, time):
         return float(distance) / float(time)
 
@@ -176,12 +187,12 @@ class Details(webapp2.RequestHandler):
         return (pi * float(degree) / 180.0)
 
     def getVal(self, blob_key, vType=1):
-        logging.info('Details.getVal <')
+        logging.info('TrackValuesCalculator.getVal <')
 
-        results = db.GqlQuery('SELECT * FROM TrackDetails WHERE blob_key = :1', blob_key)
+        results = db.GqlQuery('SELECT * FROM TrackValues WHERE blob_key = :1', blob_key)
         for tdResult in results:
-            logging.info('TrackDetails already calculated. blob_key '+str(blob_key)+'; filename: '+tdResult.filename)
-            logging.info('Details.getVal >')
+            logging.info('TrackValues already calculated. blob_key '+str(blob_key)+'; filename: '+tdResult.filename)
+            logging.info('TrackValuesCalculator.getVal >')
             return tdResult
 
         blob_reader = blobstore.BlobReader(blob_key)
@@ -216,8 +227,8 @@ class Details(webapp2.RequestHandler):
         cntMeasurements = 0
         speedSum = 0
 
-        trackDetails = TrackDetails()
-        trackDetails.waypoints = 0
+        values = TrackValues()
+        values.waypoints = 0
         rootChildren = root.getChildren()
         for root_c in rootChildren:
             tagName = root_c.getTagName()
@@ -226,9 +237,9 @@ class Details(webapp2.RequestHandler):
                 for metadata_c in metadataChildren:
                     tagName = metadata_c.getTagName()
                     if tagName == "name":
-                        trackDetails.filename = metadata_c.getElementValue()
+                        values.filename = metadata_c.getElementValue()
                     elif tagName == "time":
-                        trackDetails.time = metadata_c.getElementValue()
+                        values.time = metadata_c.getElementValue()
 
             elif tagName == "trk":
                 trkChildren = root_c.getChildren()
@@ -248,14 +259,14 @@ class Details(webapp2.RequestHandler):
                                 lat_degree = float(trkseq_c.getAttribute("lat"))
                                 lat2 = self.deg2rad(lat_degree)
 
-                                trackDetails.waypoints += 1
+                                values.waypoints += 1
 
                                 if lat1 == undef:
-                                    trackDetails.startLon = lon_degree
-                                    trackDetails.startLat = lat_degree
+                                    values.startLon = lon_degree
+                                    values.startLat = lat_degree
 
                                     if vType == vStartLocation:
-                                        return trackDetails
+                                        return values
 
                                 #logging.info('lon_degree: '+str(lon_degree)+'; lat_degree: '+str(lat_degree))
 
@@ -315,37 +326,37 @@ class Details(webapp2.RequestHandler):
             stop = parse(valStop)
             duration = (stop - start)
             logging.info('duration: '+str(duration))
-            trackDetails.duration = str(duration)
+            values.duration = str(duration)
 
         if vType == vDistance or vType == vAllValues:
             logging.info('distance: '+str(distanceTotal))
-            trackDetails.distance = distanceTotal
+            values.distance = distanceTotal
 
         if vType == vMaxElevation or vType == vAllValues:
-            trackDetails.elevation_max = maxElev
+            values.elevation_max = maxElev
 
         if vType == vMinElevation or vType == vAllValues:
-            trackDetails.elevation_min = minElev
+            values.elevation_min = minElev
 
         if vType == vSpeedMax or vType == vAllValues:
-            trackDetails.speed_max = speedMax
+            values.speed_max = speedMax
 
         if vType == vSpeedAvrg or vType == vAllValues:
-            trackDetails.speed_avrg = float(speedSum / cntMeasurements)
-            logging.info('speed_avrg: '+str(trackDetails.speed_avrg))
+            values.speed_avrg = float(speedSum / cntMeasurements)
+            logging.info('speed_avrg: '+str(values.speed_avrg))
 
-        trackDetails.blob_key = str(blob_key)
-        key = trackDetails.put();
-        msg  = 'Track details put to datastore'
-        msg += '; blob_key: '+str(trackDetails.blob_key)+'; filename: '+trackDetails.filename
+        values.blob_key = str(blob_key)
+        key = values.put();
+        msg  = 'Track values put to datastore'
+        msg += '; blob_key: '+str(values.blob_key)+'; filename: '+values.filename
         logging.info(msg)
 
-        logging.info('Details.getVal >')
-        return trackDetails
+        logging.info('TrackValuesCalculator.getVal >')
+        return values
 
 
 
-    def getAllTrackDetails(self, blob_key):
+    def getAllTrackValues(self, blob_key):
         return self.getVal(blob_key, vAllValues)
 
     def getMaxElevation(self, blob_key):
@@ -366,7 +377,7 @@ class Details(webapp2.RequestHandler):
         return self.getVal(blob_key, vDistance)
 
     def get(self, resource):
-        logging.info('Details.get <')
+        logging.info('TrackValuesCalculator.get <')
         resource = str(urllib.unquote(resource))
         show = self.request.GET.get('show')
         global trackDisplay
@@ -379,22 +390,24 @@ class Details(webapp2.RequestHandler):
                 elif show == 'false':
                     d['display'] = False
                 else:
-                    logging.error('true/false')
+                    s  = "Unrecognized value of 'show': "+str(show)+". "
+                    s += "Expecting true or false"
+                    logging.error(s)
                 break
 
 
-        #trackDetails = self.getAllTrackDetails(blob_key)
+        #values = self.getAllTrackValues(blob_key)
 
         all_blobs = blobstore.BlobInfo.all()
 
-        details = Details()
+        values = TrackValuesCalculator()
         tracks = []
         #for b in all_blobs:
         for idx, b in enumerate(trackDisplay):
             #bKey = b.key()
             bKey = b['bKey']
             if b['display'] == True:
-                td = details.getAllTrackDetails(bKey)
+                td = values.getAllTrackValues(bKey)
                 tdValues = {
                     'color' : b['color'],
                     'detailId' : detailId_prefix+str(idx),
@@ -423,7 +436,7 @@ class Details(webapp2.RequestHandler):
         template = jinja_environment.get_template('/templates/details.html')
         #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
-        logging.info('Details.get >')
+        logging.info('TrackValuesCalculator.get >')
 
 
 
@@ -455,12 +468,12 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
         logging.info('ServeHandler.get <')
         global isDevelopment
-        global trackDisplay
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
 
+        global trackDisplay
         for td in trackDisplay:
-            td['display'] = False       # display only the new loaded track details
+            td['display'] = False       # display only the new loaded track values
 
         colors = [
             'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
@@ -468,7 +481,6 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
 
         idx = len(trackDisplay)
         color = colors[idx]
-        logging.info('----------- idx: '+str(idx)+'; color: '+color)
         trackDisplay.append({ 'bKey' : blob_key, 'display' : True, 'color' : color})
 
         if isDevelopment:
@@ -545,9 +557,9 @@ def main():
         #self.response.out.write("%s = %s<br />\n" % (name, os.environ[name]))
     application = webapp2.WSGIApplication([
         ('/', MainHandler),
-        ('/track/([^/]+)?', TrackLoader),
-        ('/details/([^/]+)?', Details),
-        ('/details/([^/]+)?show=(true|false)', Details),
+        ('/track/([^/]+)?', Display),
+        ('/details/([^/]+)?', TrackValuesCalculator),
+        ('/details/([^/]+)?show=(true|false)', TrackValuesCalculator),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),
         ('/upload_handler', UploadHandler),

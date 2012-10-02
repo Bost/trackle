@@ -7,13 +7,13 @@ function myFn(arr, color) {
             console.error("Cannot display more than "+arr.length+" tracks");
             break;
         }
-        var trackUrl = arr[i];
-        console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+        var url = arr[i];
+        console.log("trackIdx: "+i+"; url: "+url+"; color: "+color);
 
         var lgpx = new OpenLayers.Layer.Vector("", {
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
-                url: trackUrl,
+                url: url,
                 format: new OpenLayers.Format.GPX()
             }),
             style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
@@ -23,9 +23,11 @@ function myFn(arr, color) {
     }
 }
 
-function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
-    console.log("arrUrls: "+arrUrls)
-    map = new OpenLayers.Map ("map", {
+function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrls, arrColors) {
+    //console.log("Loading urls: "+arrUrls)
+    var destId = 'map';
+    $('#'+destId).html('');
+    map = new OpenLayers.Map (destId, {
         controls:[
             new OpenLayers.Control.Navigation(),
             new OpenLayers.Control.PanZoomBar(),
@@ -73,21 +75,23 @@ function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
         //console.log("Cycle nr: " + i +"; time: "+time);
     }
 */
+
     for(var i in arrUrls) {
-        var trackUrl = arrUrls[i];
-        var color = colors[i];
-        console.log("below: trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+        var url = arrUrls[i];
+        var color = arrColors[i];
 
         var lgpx = new OpenLayers.Layer.Vector("", {
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
-                url: trackUrl,
+                url: url,
                 format: new OpenLayers.Format.GPX()
             }),
             style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
             projection: new OpenLayers.Projection("EPSG:4326")
         });
         map.addLayer(lgpx);
+        console.log("Track url '"+url+"'; color '"+color+"' added to elemId '"+destId+"'");
     }
+
 }
 
