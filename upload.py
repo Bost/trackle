@@ -92,8 +92,8 @@ class TrackDisplay(db.Model):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        Display = Display()
-        s = Display.get(undef)
+        display = Display()
+        s = display.get(undef)
         self.response.out.write(s)
 
 # TODO Display should consist of displayMap and displayDetails
@@ -116,8 +116,10 @@ class Display(webapp2.RequestHandler):
             cn += td.time[11:16]
             if idx >= len(trackDisplay):
                 color = ''
+                show = False
             else:
                 color = trackDisplay[idx]['color']
+                show = True
 
             mapEntry = {
                     'lon' : td.startLon,
@@ -129,6 +131,7 @@ class Display(webapp2.RequestHandler):
                     'cboxId' : 'cbox'+str(idx),
                     'detailId' : detailId_prefix+str(idx),
                     'color' : color,
+                    'show' : show,
                 }
             mapEntries.append(mapEntry)
 
@@ -166,9 +169,8 @@ class Display(webapp2.RequestHandler):
             'url_delete' : 'delete',
             'url_download' : 'download',
             'url_details' : 'values',
-            'display_entry_id' : displId,
         }
-        template = jinja_environment.get_template('/templates/layout.html')
+        template = jinja_environment.get_template('templates/layout.html')
         s = template.render(templateVals)
         logging.info('Display >')
         if blob_key == undef:
@@ -383,12 +385,15 @@ class TrackValuesCalculator(webapp2.RequestHandler):
         global trackDisplay
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
+        logging.info('------show: '+show+' ------- trackDisplay: '+str(trackDisplay))
         for d in trackDisplay:
             if blob_key == d['bKey']:
                 if show == 'true':
                     d['display'] = True
+                    logging.info('------------- trackDisplay: '+str(trackDisplay))
                 elif show == 'false':
                     d['display'] = False
+                    logging.info('------------- trackDisplay: '+str(trackDisplay))
                 else:
                     s  = "Unrecognized value of 'show': "+str(show)+". "
                     s += "Expecting true or false"

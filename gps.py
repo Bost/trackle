@@ -12,7 +12,7 @@ from google.appengine.api import mail
 
 import jinja2
 import os
-from upload import Details
+from upload import TrackValues
 
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -120,8 +120,8 @@ class MapLayer(webapp2.RequestHandler):
         logging.info("length: "+cntGpsPositions)
         reset_cnt()
 
-        details = Details()
-        td = details.getStartLocation(blob_key)
+        values = Values()
+        td = values.getStartLocation(blob_key)
         templateVals = {
             'cntGpsPositions' : cntGpsPositions,
             'style' : "width:100%; height:100%",

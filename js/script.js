@@ -1,97 +1,123 @@
-var map; //complex object of type OpenLayers.Map
-
-// Add the Layer with the GPX Track
-function myFn(arr, color) {
-    for(var i in arr) {
-        if (i >= colors.length) {
-            console.error("Cannot display more than "+arr.length+" tracks");
-            break;
-        }
-        var url = arr[i];
-        console.log("trackIdx: "+i+"; url: "+url+"; color: "+color);
-
-        var lgpx = new OpenLayers.Layer.Vector("", {
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-                url: url,
-                format: new OpenLayers.Format.GPX()
-            }),
-            style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
-            projection: new OpenLayers.Projection("EPSG:4326")
-        });
-        map.addLayer(lgpx);
-    }
-}
-
 function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrls, arrColors) {
-    //console.log("Loading urls: "+arrUrls)
-    var destId = 'map';
-    $('#'+destId).html('');
-    map = new OpenLayers.Map (destId, {
-        controls:[
-            new OpenLayers.Control.Navigation(),
-            new OpenLayers.Control.PanZoomBar(),
-            new OpenLayers.Control.LayerSwitcher(),
-            new OpenLayers.Control.Attribution()],
-        maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-        maxResolution: 156543.0399,
-        numZoomLevels: 19,
-        units: 'm',
-        projection: new OpenLayers.Projection("EPSG:900913"),
-        displayProjection: new OpenLayers.Projection("EPSG:4326")
-    } );
 
-    // Define the map layer
-    // Here we use a predefined layer that will be kept up to date with URL changes
-    layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
-    map.addLayer(layerMapnik);
-    layerCycleMap = new OpenLayers.Layer.OSM.CycleMap("CycleMap");
-    map.addLayer(layerCycleMap);
-    layerMarkers = new OpenLayers.Layer.Markers("Markers");
-    map.addLayer(layerMarkers);
+    jQuery.cachedScript = function(url, options) {
+      // allow user to set any option except for dataType, cache, and url
+      options = $.extend(options || {}, {
+        dataType: "script",
+        cache: true,
+        url: url
+      });
 
-    var projection = new OpenLayers.Projection("EPSG:4326");
-    var projectionObj = map.getProjectionObject();
-    var lonLat = new OpenLayers.LonLat(lon, lat).transform(projection, projectionObj);
-    map.setCenter(lonLat, zoom);
+      // Use $.ajax() since it is more flexible than $.getScript
+      // Return the jqXHR object so we can chain callbacks
+      return jQuery.ajax(options);
+    };
 
-    var size = new OpenLayers.Size(21, 25);
-    var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-    var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
-    layerMarkers.addMarker(new OpenLayers.Marker(lonLat,icon));
+    // Usage
+    //$.cachedScript("ajax/test.js").done(function(script, textStatus) {
+    //  console.log( textStatus );
+    //});
 
-    // Wait a little in oder to downloaded the map for the 1st time.
-    // This is probably not the right way to do it
-    //setTimeout(function() {}, 1000);
-/*
-    var time_inc = 500   // in milisec
-    var time = 0
+    var openLayers_js = "http://www.openlayers.org/api/OpenLayers.js";
+    $.cachedScript(openLayers_js).done(function(script, textStatus) {
 
-    for (var i = 0; i < cntGpsPositions; i++) {
-        time += time_inc
-        setTimeout(
-            function() { myFn(arrUrls, colors) },
-            time);
-        //console.log("Cycle nr: " + i +"; time: "+time);
-    }
-*/
+        var openStreetMap_js = "http://www.openstreetmap.org/openlayers/OpenStreetMap.js";
+        $.cachedScript(openStreetMap_js).done(function(script, textStatus) {
 
-    for(var i in arrUrls) {
-        var url = arrUrls[i];
-        var color = arrColors[i];
+            var map; //complex object of type OpenLayers.Map
 
-        var lgpx = new OpenLayers.Layer.Vector("", {
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-                url: url,
-                format: new OpenLayers.Format.GPX()
-            }),
-            style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
-            projection: new OpenLayers.Projection("EPSG:4326")
+            // Add the Layer with the GPX Track
+            function myFn(arr, color) {
+                for(var i in arr) {
+                    if (i >= colors.length) {
+                        console.error("Cannot display more than "+arr.length+" tracks");
+                        break;
+                    }
+                    var url = arr[i];
+                    console.log("trackIdx: "+i+"; url: "+url+"; color: "+color);
+
+                    var lgpx = new OpenLayers.Layer.Vector("", {
+                        strategies: [new OpenLayers.Strategy.Fixed()],
+                        protocol: new OpenLayers.Protocol.HTTP({
+                            url: url,
+                            format: new OpenLayers.Format.GPX()
+                        }),
+                        style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
+                        projection: new OpenLayers.Projection("EPSG:4326")
+                    });
+                    map.addLayer(lgpx);
+                }
+            }
+
+            var destId = 'map';
+            $('#'+destId).html('');
+            map = new OpenLayers.Map (destId, {
+                controls:[
+                    new OpenLayers.Control.Navigation(),
+                    new OpenLayers.Control.PanZoomBar(),
+                    new OpenLayers.Control.LayerSwitcher(),
+                    new OpenLayers.Control.Attribution()],
+                maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+                maxResolution: 156543.0399,
+                numZoomLevels: 19,
+                units: 'm',
+                projection: new OpenLayers.Projection("EPSG:900913"),
+                displayProjection: new OpenLayers.Projection("EPSG:4326")
+            } );
+
+            // Define the map layer
+            // Here we use a predefined layer that will be kept up to date with URL changes
+            layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
+            map.addLayer(layerMapnik);
+            layerCycleMap = new OpenLayers.Layer.OSM.CycleMap("CycleMap");
+            map.addLayer(layerCycleMap);
+            layerMarkers = new OpenLayers.Layer.Markers("Markers");
+            map.addLayer(layerMarkers);
+
+            var projection = new OpenLayers.Projection("EPSG:4326");
+            var projectionObj = map.getProjectionObject();
+            var lonLat = new OpenLayers.LonLat(lon, lat).transform(projection, projectionObj);
+            map.setCenter(lonLat, zoom);
+
+            var size = new OpenLayers.Size(21, 25);
+            var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+            var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
+            layerMarkers.addMarker(new OpenLayers.Marker(lonLat,icon));
+
+            // Wait a little in oder to downloaded the map for the 1st time.
+            // This is probably not the right way to do it
+            //setTimeout(function() {}, 1000);
+            /*
+            var time_inc = 500   // in milisec
+            var time = 0
+
+            for (var i = 0; i < cntGpsPositions; i++) {
+                time += time_inc
+                setTimeout(
+                    function() { myFn(arrUrls, colors) },
+                    time);
+                //console.log("Cycle nr: " + i +"; time: "+time);
+            }
+            */
+
+            for(var i in arrUrls) {
+                var url = arrUrls[i];
+                var color = arrColors[i];
+
+                var lgpx = new OpenLayers.Layer.Vector("", {
+                    strategies: [new OpenLayers.Strategy.Fixed()],
+                    protocol: new OpenLayers.Protocol.HTTP({
+                        url: url,
+                        format: new OpenLayers.Format.GPX()
+                    }),
+                    style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
+                    projection: new OpenLayers.Projection("EPSG:4326")
+                });
+                map.addLayer(lgpx);
+                console.log("Track url '"+url+"'; color '"+color+"' added to elemId '"+destId+"'");
+            }
+
         });
-        map.addLayer(lgpx);
-        console.log("Track url '"+url+"'; color '"+color+"' added to elemId '"+destId+"'");
-    }
-
+    });
 }
 

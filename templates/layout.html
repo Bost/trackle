@@ -5,14 +5,11 @@
     <link rel="icon" type="image/png" href="pic/favicon.png" />
     <title>trackle</title>
 
-    <!-- bring in the OpenLayers javascript library
-         (here we bring it from the remote site, but you could
-         easily serve up this javascript yourself) -->
-    <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
-    <!-- bring in the OpenStreetMap OpenLayers layers.
-         Using this hosted file will make sure we are kept up
-         to date with any necessary changes -->
-    <script type="text/javascript" src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+    <script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
+    <!--<script type="text/javascript" src="https://github.com/SamWM/jQuery-Plugins/raw/master/checkboxes/jquery.checkboxes.min.js"></script>-->
+    <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
+
     <script type="text/javascript" src="js/script.js"></script>
     <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
     <style type="text/css">
@@ -204,14 +201,24 @@
 
         });
 
-        // these four function calls make up the only way how to set the
-        // checkbox to 'checked' and show the track
-        var selector = '#{{ display_entry_id }}';
-        $(selector).prop("checked", true);
-        $(selector).click();
-        $(selector).prop("checked", true);
-        $(".cbox").button();
+        // TODO display initial state withouth using mouse clicks
+        var arr = new Array();
+        {% for e in entries %}
+        arr.push({ 'show' : '{{ e.show }}', 'cboxId' : '{{ e.cboxId }}' });
+        {% endfor %}
 
+        for (var i in arr) {
+            t = arr[i];
+            if (t.show == 'True') {
+                var el = $('#'+t.cboxId);
+                // these four function calls make up the only way how to set the
+                // checkbox to 'checked' and show the track
+                el.prop("checked", true);
+                el.click();
+                el.prop("checked", true);
+            }
+        }
+        $(".cbox").button();
     });
 
     function display(lon, lat, url, cboxId, cboxClass, destId) {
@@ -231,7 +238,6 @@
     }
 
     function displayDetails(url, cboxId, destId) {
-        console.log("Url '"+url+"'; cboxId: '"+cboxId+"'; destId '"+destId+"'");
         var show = $('#'+cboxId).prop('checked');
         var urlDetails = url+show;
 
