@@ -208,7 +208,7 @@
         // checkbox to 'checked' and show the track
         var selector = '#{{ display_entry_id }}';
         //var selector = '.cbox:first';
-        console.log('$( "'+selector+'" ).length: '+$(selector).length);
+        console.log('$( "'+selector+'" ).length --- initialisation: '+$(selector).length);
         $(selector).prop("checked", true);
         $(selector).click();
         $(selector).prop("checked", true);
@@ -216,18 +216,17 @@
 
     });
 
-var colors = [
-        'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
-        'navy', 'olive', 'purple', 'silver', 'teal', ];
-
     function displayDetails(lon, lat, blob_key, idx, cboxId, detailId, cboxClass) {
         $('#map').html('');
 
         var arrTrackUrls = new Array();
+        var arrColors = new Array();
         $("."+cboxClass+":checked").each(function(){
             arrTrackUrls.push("/gpxtrack/"+$(this).attr('value'));
+            arrColors.push(''+$(this).attr('clr'));
         });
-        init(1, lon, lat, 16, arrTrackUrls, colors);
+
+        init(1, lon, lat, 16, arrTrackUrls, arrColors);
 
         var show = $('#'+cboxId).prop('checked');
         var urlDetails = '/details/'+blob_key+'?show='+show;
@@ -235,7 +234,7 @@ var colors = [
             console.log('Url loaded: '+urlDetails);
             console.log('#'+detailId+': '+$('#'+detailId).length)
             //.css({'background-color': colors[idx], 'color' : 'white' });
-            $('#'+detailId).css({'background-color': colors[idx], 'color' : 'white' });
+            //$('#'+detailId).css({'background-color': colors[idx], 'color' : 'white' });
         });
     }
     </script>
@@ -271,7 +270,7 @@ var colors = [
     <div class="ui-widget" id="format">
         {% for e in entries %}
         <div>
-            <input type="checkbox" onclick="displayDetails({{ e.lon }}, {{ e.lat }}, '{{ e.bKey }}', {{ e.idx }}, '{{ e.cboxId }}', '{{ e.detailId }}', 'cbox')" class="cbox" value="{{ e.bKey }}" id="{{ e.cboxId }}" />
+            <input type="checkbox" clr="{{ e.color }}" onclick="displayDetails({{ e.lon }}, {{ e.lat }}, '{{ e.bKey }}', {{ e.idx }}, '{{ e.cboxId }}', '{{ e.detailId }}', 'cbox')" class="cbox" value="{{ e.bKey }}" id="{{ e.cboxId }}" />
             <label for="{{ e.cboxId }}">{{ e.bFilename }}</label>
         </div>
         {% endfor %}

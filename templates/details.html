@@ -9,7 +9,7 @@
 </div>
 {% for t in tracks %}
 <div class="detailValues">
-    <div id="{{ t.detailId }}" class="detailValue">{{ t.filename }}</div>
+    <div id="{{ t.detailId }}" class="detailValue" style="background-color: {{ t.color}}; color : white;">{{ t.filename }}</div>
     <div class="detailValue">{{ t.waypoints }}</div>
     <div class="detailValue">{{ t.speed_avrg }}</div>
     <div class="detailValue">{{ t.duration }}</div>

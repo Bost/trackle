@@ -43,6 +43,7 @@ timeUnits = '[ hh:mm:ss ]'
 
 
 detailId_prefix = 'detail'
+cboxId_prefix = 'cbox'
 
 # Earth radius in kilometer
 R = 6371
@@ -97,6 +98,7 @@ class MainHandler(webapp2.RequestHandler):
 
 class TrackLoader(webapp2.RequestHandler):
     def get(self, blob_key):
+        global trackDisplay
         logging.info('TrackLoader <')
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
@@ -111,6 +113,10 @@ class TrackLoader(webapp2.RequestHandler):
             cn += td.time[5:7] + '.'
             cn += td.time[0:4] + ' '
             cn += td.time[11:16]
+            if idx >= len(trackDisplay):
+                color = ''
+            else:
+                color = trackDisplay[idx]['color']
 
             entry = {
                     'lon' : td.startLon,
@@ -122,18 +128,20 @@ class TrackLoader(webapp2.RequestHandler):
                     'idx' : idx,
                     'cboxId' : 'cbox'+str(idx),
                     'detailId' : detailId_prefix+str(idx),
+                    'color' : color,
                 }
             entries.append(entry)
 
-        sorted_entries = sorted(entries, key=lambda a_entry: a_entry['time'])
+        sorted_entries = entries
+        #sorted_entries = sorted(entries, key=lambda a_entry: a_entry['time'])
 
         displId = ''
         if blob_key == undef:
-            displId = 'id1'
+            displId = cboxId_prefix+str(len(entries) - 1)
         else:
             for e in entries:
                 if blob_key == e['bKey']:
-                    displId = e['id']
+                    displId = e['cboxId']
 
 
         #logging.info('entries: '+ str(sorted_entries))
@@ -388,6 +396,7 @@ class Details(webapp2.RequestHandler):
             if b['display'] == True:
                 td = details.getAllTrackDetails(bKey)
                 tdValues = {
+                    'color' : b['color'],
                     'detailId' : detailId_prefix+str(idx),
                     'filename' : td.filename,
                     'timestamp' : 'timestamp',
@@ -441,6 +450,7 @@ class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         self.redirect('/servefile/%s' % blob_info.key())
 
 
+
 class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, resource):
         logging.info('ServeHandler.get <')
@@ -452,7 +462,14 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         for td in trackDisplay:
             td['display'] = False       # display only the new loaded track details
 
-        trackDisplay.append({ 'bKey' : blob_key, 'display' : True})
+        colors = [
+            'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
+            'navy', 'olive', 'purple', 'silver', 'teal', ];
+
+        idx = len(trackDisplay)
+        color = colors[idx]
+        logging.info('----------- idx: '+str(idx)+'; color: '+color)
+        trackDisplay.append({ 'bKey' : blob_key, 'display' : True, 'color' : color})
 
         if isDevelopment:
             # TODO run xml validation in background from task queue

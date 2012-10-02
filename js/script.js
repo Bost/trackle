@@ -1,15 +1,14 @@
 var map; //complex object of type OpenLayers.Map
 
 // Add the Layer with the GPX Track
-function myFn(arr, colors) {
+function myFn(arr, color) {
     for(var i in arr) {
         if (i >= colors.length) {
             console.error("Cannot display more than "+arr.length+" tracks");
             break;
         }
         var trackUrl = arr[i];
-        var color = colors[i];
-        //console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+        console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
 
         var lgpx = new OpenLayers.Layer.Vector("", {
             strategies: [new OpenLayers.Strategy.Fixed()],
@@ -75,13 +74,9 @@ function init(cntGpsPositions, lon, lat, zoom, arrUrls, colors) {
     }
 */
     for(var i in arrUrls) {
-        if (i >= colors.length) {
-            console.error("Cannot display more than "+arr.length+" tracks");
-            break;
-        }
         var trackUrl = arrUrls[i];
         var color = colors[i];
-        //console.log("trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
+        console.log("below: trackIdx: "+i+"; trackUrl: "+trackUrl+"; color: "+color);
 
         var lgpx = new OpenLayers.Layer.Vector("", {
             strategies: [new OpenLayers.Strategy.Fixed()],
