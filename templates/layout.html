@@ -1,200 +1,36 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+<title>Layout Example</title>
+<script type="text/javascript" src="js/jquery-latest.js"></script>
+<script type="text/javascript" src="js/jquery.layout-latest.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
+<link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
 
-    <link rel="icon" type="image/png" href="pic/favicon.png" />
-    <title>trackle</title>
+<script type="text/javascript" src="js/script.js"></script>
+<style type="text/css">
+.ui-button .ui-button-text {
+    line-height: 0.7em;
+    font-weight: normal;
+    font-size: small;
+}
 
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-    <script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
-    <script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
-    <!--<script type="text/javascript" src="https://github.com/SamWM/jQuery-Plugins/raw/master/checkboxes/jquery.checkboxes.min.js"></script>-->
-    <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
-
-    <script type="text/javascript" src="js/script.js"></script>
-    <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
-    <style type="text/css">
-
-    .ui-button .ui-button-text {
-        line-height: 0.7em;
-        font-weight: normal;
-        font-size: small;
-    }
-
-    .details, .detailLabels, .detailValues {
-        font-size: smaller;
-    }
-    .detailLabels, .detailValues {
-        height: 8em;
-        float: left;
-    }
-    .detailLabels {
-        width: 11.7em;
-    }
-    .detailValues {
-        width: 21em;
-    }
-    /**
-     *    Basic Layout Theme
-     *
-     *    This theme uses the default layout class-names for all classes
-     *    Add any 'custom class-names', from options: paneClass, resizerClass, togglerClass
-     */
-
-     .separator {
-         height: 20px;
-     }
-    .ui-layout-pane-west ,
-    .ui-layout-pane-center .ui-layout-pane { /* all 'inner panes' */
-        border: 1px solid #BBB;
-        padding: 5px;
-        overflow: auto;
-    }
-    .ui-layout-resizer { /* all 'resizer-bars' */
-        background: #DDD;
-    }
-    .ui-layout-toggler { /* all 'toggler-buttons' */
-        background: #AAA;
-    }
-
-/*
-    #pane4-closed ,
-    .ui-layout-east                        { background:    #00CB6D; }
-    .ui-layout-center .ui-layout-north    { background:    #00B4BA; }
-    .ui-layout-center .ui-layout-south    { background:    #008EFF; }
-    .ui-layout-center .ui-layout-center    { background:    #90C7FF; }
-*/
-    #pane4-closed {
-        position:    absolute;
-        top:         0;
-        left:        0;
-        width:       auto;
-        height:      auto;
-        padding:     5px 10px;
-        text-align:  center;
-        border:      1px solid #999;
-    }
-
-    #pane3-buttons {
-        position:    absolute;
-        top:         0;
-        right:       0;
-        width:       auto;
-        height:      auto;
-        padding:     5px 10px;
-        text-align:  center;
-        border:      1px solid #999;
-    }
-
-    /**
-     *    ALL CSS below is only for cosmetic and demo purposes
-     *    Nothing here affects the appearance of the layout
-     */
-    body {
-        font-family:    Arial, sans-serif;
-        font-size:      1em;
-        /*background:   #999;*/
-    }
-    p {
-        margin: 1em 0;
-    }
-
-    </style>
-
-    <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>-->
-    <script type="text/javascript" src="js/jquery-ui-latest.js"></script>
-    <script type="text/javascript" src="js/jquery.layout-latest.js"></script>
-
-    <script type="text/javascript" src="js/complex.js"></script>
-    <script type="text/javascript">
-
-    // options for a 2-level layout _inside_ tab-panel #1
-    var tabLayoutSettings = {
-        name:                        "tabLayout"
-    ,    initPanes:                    false // delay layout init until tab.show calls tabLayout.resizeAll()
-    ,    resizeWithWindow:            false // needed because 'nested' inside the tabLayout div
-    ,    center__paneSelector:        ".m-center"
-    ,    west__paneSelector:            ".m-west"
-    ,    east__paneSelector:            ".m-east"
-    ,    north__paneSelector:          ".m-north"
-    ,    south__paneSelector:          ".m-south"
-    ,    contentSelector:            ".ui-widget-content"
-    ,    spacing_open:                4
-    ,    spacing_closed:                4
-    ,    north__minSize:                20
-    ,    north__spacing_open:        1
-    ,    north__togglerLength_open:    0
-    ,    north__togglerLength_close:    -1
-    ,    north__resizable:            false
-    ,    north__slidable:            false
-    ,    north__fxName:                'none'
-    ,    west__size:                    '33%'
-    ,    center__size:                '33%'
-    ,    east__size:                    '33%'
-    //,    west__initClosed:            true
-    ,    south__minSize:                5
-    ,    south__size:                'auto'
-    ,    south__togglerLength_open:    0
-    ,    south__togglerLength_close:    -1
-    ,    south__resizable:            false
-    ,    south__slidable:            false
-    ,    south__spacing_open:        1
-    //    options for 2nd-level layout nested inside center-pane of tab-layout
-    /*
-    ,    center__childOptions: {
-            name:                        "innerLayout"
-        ,    center__paneSelector:        ".inner-center"
-        ,    west__paneSelector:            ".inner-west"
-        ,    east__paneSelector:            ".inner-east"
-        ,    north__paneSelector:        ".inner-north"
-        ,    contentSelector:            ".ui-widget-content"
-        ,    west__initClosed:            true
-        ,    east__initClosed:            true
-        ,    spacing_open:                4
-        ,    spacing_closed:                4
-        ,    west__size:                    361
-        ,    east__size:                    250
-        ,    east__fxSpeed:                'slow'
-        ,    north__minSize:                15
-        ,    north__spacing_open:        2
-        ,    north__togglerLength_open:    50
-        ,    north__togglerLength_close:    -1
-        }
-    */
-    };
-
-    var outerLayout, innerLayout;
-
-    $(document).ready(function () {
-        $("#pane4-closed").hide();  // initialy - the button 'close panel4' is hidden
-        outerLayout = $('body').layout({
-            // using 'sub-key' option format here
-            west: {
-                 size:               320
-                ,resizable:          true
-                ,togglerLength_open: 0
-                ,spacing_open:       6 /* resize bar width */
-                ,initHidden:         false /* show th panel4 in the begining */
-                ,onhide_end:         function () { $("#pane4-closed").slideDown(); }
-                ,onshow_start:       function () { $("#pane4-closed").hide(); }
-            },
-
-            center: {
-                onresize:        function () { if (innerLayout) innerLayout.resizeAll(); }
-            }
-        });
-
-        innerLayout = $('body > .ui-layout-center').layout({
-            north: {
-                 size:     50
-                ,minSize:  50
-                ,closable: false
-            },
-            south: {
-                 size:     190
-                ,minSize:  50
-                ,closable: false
-            },
+.detailLabels, .detailValues {
+    height: 8em;
+    float: left;
+}
+.detailLabels {
+    width: 11.7em;
+}
+.detailValues {
+    width: 21em;
+}
+</style>
+<script type="text/javascript">
+$(document).ready(function () {
+        $('body').layout({
+            applyDemoStyles: true,
+            south__resizable: true,
         });
         /*
         // TODO initial displayment
@@ -217,41 +53,53 @@
         }
         */
         $(".cbox").button();
+});
+
+function display(lon, lat, url, cboxClass, destId) {
+    var arrUrlGpxTrack = new Array();
+    var arrUrlDetailTrack = new Array();
+    var arrTrackColors = new Array();
+
+    $("."+cboxClass+":checked").each(function(){
+        checkedElem = $(this);
+        var urlGpxTrack = '/gpxtrack/'+checkedElem.attr('bkey');
+        var urlDetail = '/details/'+checkedElem.attr('bkey');
+        arrUrlGpxTrack.push(urlGpxTrack);
+        arrUrlDetailTrack.push(urlDetail);
+        arrTrackColors.push(checkedElem.attr('color'));
     });
-
-    function display(lon, lat, url, cboxClass, destId) {
-        var arrUrlGpxTrack = new Array();
-        var arrUrlDetailTrack = new Array();
-        var arrTrackColors = new Array();
-
-        $("."+cboxClass+":checked").each(function(){
-            checkedElem = $(this);
-            var urlGpxTrack = '/gpxtrack/'+checkedElem.attr('bkey');
-            var urlDetail = '/details/'+checkedElem.attr('bkey');
-            arrUrlGpxTrack.push(urlGpxTrack);
-            arrUrlDetailTrack.push(urlDetail);
-            arrTrackColors.push(checkedElem.attr('color'));
-        });
-        displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
-    }
-
-    </script>
-    <style>
-        #format { margin-top: 2em; }
-    </style>
-
+    displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
+}
+</script>
 </head>
 <body>
+<div class="ui-layout-center">
+    <div style="width:100%; height:100%" id="map"></div>
+</div>
+<!--<div class="ui-layout-north">North</div>-->
+<div class="ui-layout-south">
+    <div id="details" style="height:100%">
+        <div class="detailLabels">
+            <div>filename:</div>
+            <div>waypoints:</div>
+            <div>averadge speed {{ speedUnits }}:</div>
+            <div>duration {{ timeUnits }}:</div>
+            <div>distance {{ distanceUnits }}:</div>
+            <div>top speed {{ speedUnits }}:</div>
+            <div>elevation gain {{ elevationUnits }}:</div>
+        </div>
+        <div id="detailContainer">
+        </div>
+    </div>
+</div>
+<!--<div class="ui-layout-east">East</div>-->
 <div class="ui-layout-west">
-    <div><button onclick="outerLayout.hide('west', true)">Close Me</button></div>
-    <div class="separator"></div>
     <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
 
         <div>Upload GPX file:</div>
         <input id="file" type="file" name="file" value="Val"/>
 
-        <!--<label for="realupload">Upload file: </label>-->
-        <!--
+        <!--<label for="realupload">Upload file: </label>
         <div class="fakeupload">
             <input type="text" name="fakeupload" /> #!== browse button is here as background ==#
         </div>
@@ -270,43 +118,5 @@
         {% endfor %}
     </div>
 </div>
-
-<div class="ui-layout-center">
-
-    <div class="ui-layout-north">
-        <div id="pane4-closed">
-            <button onclick="outerLayout.show('west',true)">Open #4</button>
-        </div>
-        <div id="pane3-buttons">
-            pane #3 &nbsp; &nbsp;
-            <button onclick="innerLayout.sizePane('north', 300)">'Open' Pane</button> &nbsp;
-            <button onclick="innerLayout.sizePane('north', 50)">'Close' Pane</button>
-        </div>
-    </div>
-
-    <div class="ui-layout-center">
-        <div style="width:100%; height:100%" id="map"></div>
-    </div>
-
-    <div class="ui-layout-south">
-        <div id="details" style="height:100%">
-            <div class="detailLabels">
-                <div class="detailsLabel">filename:</div>
-                <div class="detailsLabel">waypoints:</div>
-                <div class="detailsLabel">averadge speed {{ speedUnits }}:</div>
-                <div class="detailsLabel">duration {{ timeUnits }}:</div>
-                <div class="detailsLabel">distance {{ distanceUnits }}:</div>
-                <div class="detailsLabel">top speed {{ speedUnits }}:</div>
-                <div class="detailsLabel">elevation gain {{ elevationUnits }}:</div>
-            </div>
-            <div id="detailContainer">
-            </div>
-        </div>
-        <button onclick="innerLayout.sizePane('south', 300)">'Open' Pane</button> &nbsp;
-        <button onclick="innerLayout.sizePane('south', 200)">'Close' Pane</button>
-    </div>
-
-</div>
-
 </body>
 </html>
