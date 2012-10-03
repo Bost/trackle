@@ -5,6 +5,7 @@
     <link rel="icon" type="image/png" href="pic/favicon.png" />
     <title>trackle</title>
 
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.23.custom.min.js"></script>
     <!--<script type="text/javascript" src="https://github.com/SamWM/jQuery-Plugins/raw/master/checkboxes/jquery.checkboxes.min.js"></script>-->
@@ -100,12 +101,11 @@
 
     </style>
 
-    <script type="text/javascript" src="js/jquery-latest.js"></script>
+    <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>-->
     <script type="text/javascript" src="js/jquery-ui-latest.js"></script>
     <script type="text/javascript" src="js/jquery.layout-latest.js"></script>
 
     <script type="text/javascript" src="js/complex.js"></script>
-
     <script type="text/javascript">
 
     // options for a 2-level layout _inside_ tab-panel #1
@@ -166,9 +166,7 @@
     var outerLayout, innerLayout;
 
     $(document).ready(function () {
-
         $("#pane4-closed").hide();  // initialy - the button 'close panel4' is hidden
-
         outerLayout = $('body').layout({
             // using 'sub-key' option format here
             west: {
@@ -186,7 +184,6 @@
             }
         });
 
-
         innerLayout = $('body > .ui-layout-center').layout({
             north: {
                  size:     50
@@ -198,9 +195,9 @@
                 ,minSize:  50
                 ,closable: false
             },
-
         });
-
+        /*
+        // TODO initial displayment
         // TODO display initial state withouth using mouse clicks
         var arr = new Array();
         {% for e in entries %}
@@ -218,33 +215,26 @@
                 el.prop("checked", true);
             }
         }
+        */
         $(".cbox").button();
     });
 
-    function display(lon, lat, url, cboxId, cboxClass, destId) {
-        displayMap(lon, lat, cboxClass);
-        displayDetails(url, cboxId, destId);
-    }
-
-    function displayMap(lon, lat, cboxClass) {
-        var arrTrackUrls = new Array();
+    function display(lon, lat, url, cboxClass, destId) {
+        var arrUrlGpxTrack = new Array();
+        var arrUrlDetailTrack = new Array();
         var arrTrackColors = new Array();
+
         $("."+cboxClass+":checked").each(function(){
             checkedElem = $(this);
-            arrTrackUrls.push(checkedElem.attr('value'));
+            var urlGpxTrack = '/gpxtrack/'+checkedElem.attr('bkey');
+            var urlDetail = '/details/'+checkedElem.attr('bkey');
+            arrUrlGpxTrack.push(urlGpxTrack);
+            arrUrlDetailTrack.push(urlDetail);
             arrTrackColors.push(checkedElem.attr('color'));
         });
-        displayTracks(1, lon, lat, 16, arrTrackUrls, arrTrackColors);
+        displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
     }
 
-    function displayDetails(url, cboxId, destId) {
-        var show = $('#'+cboxId).prop('checked');
-        var urlDetails = url+show;
-
-        $('#'+destId).load(urlDetails, function() {
-            console.log("Url '"+urlDetails+"' loaded to elemId '"+destId+"'");
-        });
-    }
     </script>
     <style>
         #format { margin-top: 2em; }
@@ -253,18 +243,14 @@
 </head>
 <body>
 <div class="ui-layout-west">
-    <!--pane #4-->
     <div><button onclick="outerLayout.hide('west', true)">Close Me</button></div>
-
     <div class="separator"></div>
-
     <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
 
         <div>Upload GPX file:</div>
         <input id="file" type="file" name="file" value="Val"/>
 
         <!--<label for="realupload">Upload file: </label>-->
-
         <!--
         <div class="fakeupload">
             <input type="text" name="fakeupload" /> #!== browse button is here as background ==#
@@ -278,7 +264,7 @@
     <div class="ui-widget" id="format">
         {% for e in entries %}
         <div>
-            <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '/details/{{ e.bKey }}?show=', '{{ e.cboxId }}', 'cbox', 'details')" class="cbox" value="/gpxtrack/{{ e.bKey }}" id="{{ e.cboxId }}" />
+            <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '{{ e.cboxId }}', 'cbox', 'details')" class="cbox" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" />
             <label for="{{ e.cboxId }}">{{ e.bFilename }}</label>
         </div>
         {% endfor %}
@@ -299,12 +285,22 @@
     </div>
 
     <div class="ui-layout-center">
-        <!--This is pane #2-->
         <div style="width:100%; height:100%" id="map"></div>
     </div>
 
     <div class="ui-layout-south">
         <div id="details" style="height:100%">
+            <div class="detailLabels">
+                <div class="detailsLabel">filename:</div>
+                <div class="detailsLabel">waypoints:</div>
+                <div class="detailsLabel">averadge speed {{ speedUnits }}:</div>
+                <div class="detailsLabel">duration {{ timeUnits }}:</div>
+                <div class="detailsLabel">distance {{ distanceUnits }}:</div>
+                <div class="detailsLabel">top speed {{ speedUnits }}:</div>
+                <div class="detailsLabel">elevation gain {{ elevationUnits }}:</div>
+            </div>
+            <div id="detailContainer">
+            </div>
         </div>
         <button onclick="innerLayout.sizePane('south', 300)">'Open' Pane</button> &nbsp;
         <button onclick="innerLayout.sizePane('south', 200)">'Close' Pane</button>

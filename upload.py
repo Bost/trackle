@@ -52,8 +52,9 @@ undef = -1
 global isDevelopment
 isDevelopment = False
 
-global trackDisplay
-trackDisplay = []
+colors = [
+    'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
+    'navy', 'olive', 'purple', 'silver', 'teal', ];
 
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -99,7 +100,6 @@ class MainHandler(webapp2.RequestHandler):
 # TODO Display should consist of displayMap and displayDetails
 class Display(webapp2.RequestHandler):
     def get(self, blob_key):
-        global trackDisplay
         logging.info('Display <')
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
@@ -114,49 +114,22 @@ class Display(webapp2.RequestHandler):
             cn += td.time[5:7] + '.'
             cn += td.time[0:4] + ' '
             cn += td.time[11:16]
-            if idx >= len(trackDisplay):
-                color = ''
-                show = False
-            else:
-                color = trackDisplay[idx]['color']
-                show = True
 
             mapEntry = {
-                    'lon' : td.startLon,
-                    'lat' : td.startLat,
-                    'bKey' : str(bKey),
-                    'bFilename' : cn,
-                    'time' : td.time,
-                    'idx' : idx,
-                    'cboxId' : 'cbox'+str(idx),
-                    'detailId' : detailId_prefix+str(idx),
-                    'color' : color,
-                    'show' : show,
-                }
+                'lon' : td.startLon,
+                'lat' : td.startLat,
+                'bKey' : str(bKey),
+                'bFilename' : cn,
+                'time' : td.time,
+                'idx' : idx,
+                'cboxId' : 'cbox'+str(idx),
+                'detailId' : detailId_prefix+str(idx),
+                'color' : colors[idx],
+            }
             mapEntries.append(mapEntry)
 
         sortedMapEntries = mapEntries
         #sortedMapEntries = sorted(mapEntries, key=lambda a_entry: a_entry['time'])
-
-        displId = ''
-        #for d in trackDisplay:
-            #if blob_key == d['bKey']:
-                #if show == 'true':
-                    #d['display'] = True
-                #elif show == 'false':
-                    #d['display'] = False
-                #else:
-                    #s  = "Unrecognized value of 'show': "+str(show)+". "
-                    #s += "Expecting true or false"
-                    #logging.error(s)
-                #break
-        if blob_key == undef:
-            displId = cboxId_prefix+str(len(mapEntries) - 1)
-        else:
-            for e in mapEntries:
-                if blob_key == e['bKey']:
-                    displId = e['cboxId']
-
 
         #logging.info('mapEntries: '+ str(sortedMapEntries))
         templateVals = {
@@ -381,40 +354,26 @@ class TrackValuesCalculator(webapp2.RequestHandler):
     def get(self, resource):
         logging.info('TrackValuesCalculator.get <')
         resource = str(urllib.unquote(resource))
-        show = self.request.GET.get('show')
-        global trackDisplay
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
-        logging.info('------show: '+show+' ------- trackDisplay: '+str(trackDisplay))
-        for d in trackDisplay:
-            if blob_key == d['bKey']:
-                if show == 'true':
-                    d['display'] = True
-                    logging.info('------------- trackDisplay: '+str(trackDisplay))
-                elif show == 'false':
-                    d['display'] = False
-                    logging.info('------------- trackDisplay: '+str(trackDisplay))
-                else:
-                    s  = "Unrecognized value of 'show': "+str(show)+". "
-                    s += "Expecting true or false"
-                    logging.error(s)
-                break
-
-
-        #values = self.getAllTrackValues(blob_key)
 
         all_blobs = blobstore.BlobInfo.all()
 
+        #values = self.getAllTrackValues(blob_key)
+
         values = TrackValuesCalculator()
-        tracks = []
-        #for b in all_blobs:
-        for idx, b in enumerate(trackDisplay):
-            #bKey = b.key()
-            bKey = b['bKey']
-            if b['display'] == True:
+        for idx, b in enumerate(all_blobs):
+            bKey = b.key()
+            if blob_key == b.key():
                 td = values.getAllTrackValues(bKey)
-                tdValues = {
-                    'color' : b['color'],
+                templateVals = {
+                    'doctype' : doctype,
+                    'meta_tag' : meta_tag,
+                    'distanceUnits' : distanceUnits,
+                    'elevationUnits' : elevationUnits,
+                    'speedUnits' : speedUnits,
+
+                    'color' : colors[idx],
                     'detailId' : detailId_prefix+str(idx),
                     'filename' : td.filename,
                     'timestamp' : 'timestamp',
@@ -428,21 +387,12 @@ class TrackValuesCalculator(webapp2.RequestHandler):
                     'total_descending' : 'total_descending',
                     'elevation_gain' : (td.elevation_max - td.elevation_min),
                 }
-                tracks.append(tdValues)
+                break
 
-        templateVals = {
-            'doctype' : doctype,
-            'meta_tag' : meta_tag,
-            'distanceUnits' : distanceUnits,
-            'elevationUnits' : elevationUnits,
-            'speedUnits' : speedUnits,
-            'tracks' : tracks,
-            }
         template = jinja_environment.get_template('/templates/details.html')
         #template = jinja_environment.get_template('/templates/layout.html')
         self.response.out.write(template.render(templateVals))
         logging.info('TrackValuesCalculator.get >')
-
 
 
 class Delete(webapp2.RequestHandler):
@@ -475,18 +425,6 @@ class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
         global isDevelopment
         blob_info = blobstore.BlobInfo.get(resource)
         blob_key = blob_info.key()
-
-        global trackDisplay
-        for td in trackDisplay:
-            td['display'] = False       # display only the new loaded track values
-
-        colors = [
-            'red', 'blue', 'black', 'fuchsia', 'gray', 'lime', 'maroon',
-            'navy', 'olive', 'purple', 'silver', 'teal', ];
-
-        idx = len(trackDisplay)
-        color = colors[idx]
-        trackDisplay.append({ 'bKey' : blob_key, 'display' : True, 'color' : color})
 
         if isDevelopment:
             # TODO run xml validation in background from task queue
@@ -564,7 +502,6 @@ def main():
         ('/', MainHandler),
         ('/track/([^/]+)?', Display),
         ('/details/([^/]+)?', TrackValuesCalculator),
-        ('/details/([^/]+)?show=(true|false)', TrackValuesCalculator),
         ('/delete/([^/]+)?', Delete),
         ('/download/([^/]+)?', Download),
         ('/upload_handler', UploadHandler),

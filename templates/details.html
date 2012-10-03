@@ -1,23 +1,10 @@
-<div class="detailLabels">
-    <div class="detailsLabel">filename:</div>
-    <div class="detailsLabel">waypoints:</div>
-    <div class="detailsLabel">averadge speed {{ speedUnits }}:</div>
-    <div class="detailsLabel">duration {{ timeUnits }}:</div>
-    <div class="detailsLabel">distance {{ distanceUnits }}:</div>
-    <div class="detailsLabel">top speed {{ speedUnits }}:</div>
-    <div class="detailsLabel">elevation gain {{ elevationUnits }}:</div>
-</div>
-{% for t in tracks %}
-<div class="detailValues">
-    <div id="{{ t.detailId }}" class="detailValue" style="background-color: {{ t.color}}; color : white;">{{ t.filename }}</div>
-    <div class="detailValue">{{ t.waypoints }}</div>
-    <div class="detailValue">{{ t.speed_avrg }}</div>
-    <div class="detailValue">{{ t.duration }}</div>
-    <div class="detailValue">{{ t.distance }}</div>
-    <div class="detailValue">{{ t.speed_max }}</div>
-    <div class="detailValue">{{ t.elevation_gain }}</div>
-</div>
-{% endfor %}
+<div id="{{ detailId }}" class="detailValue" style="background-color: {{ color}}; color : white;">{{ filename }}</div>
+<div class="detailValue">{{ waypoints }}</div>
+<div class="detailValue">{{ speed_avrg }}</div>
+<div class="detailValue">{{ duration }}</div>
+<div class="detailValue">{{ distance }}</div>
+<div class="detailValue">{{ speed_max }}</div>
+<div class="detailValue">{{ elevation_gain }}</div>
 <!--
 #<div id="timestamp">start on: {{ timestamp }}</div>
 #<div id="location">location: {{ location }}</div>

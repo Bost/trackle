@@ -1,4 +1,4 @@
-function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrls, arrColors) {
+function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
 
     jQuery.cachedScript = function(url, options) {
       // allow user to set any option except for dataType, cache, and url
@@ -49,9 +49,9 @@ function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrls, arrColors) {
                 }
             }
 
-            var destId = 'map';
-            $('#'+destId).html('');
-            map = new OpenLayers.Map (destId, {
+            var mapId = 'map';
+            $('#'+mapId).html('');
+            map = new OpenLayers.Map (mapId, {
                 controls:[
                     new OpenLayers.Control.Navigation(),
                     new OpenLayers.Control.PanZoomBar(),
@@ -94,15 +94,15 @@ function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrls, arrColors) {
             for (var i = 0; i < cntGpsPositions; i++) {
                 time += time_inc
                 setTimeout(
-                    function() { myFn(arrUrls, colors) },
+                    function() { myFn(arrUrlGpxTrack, colors) },
                     time);
                 //console.log("Cycle nr: " + i +"; time: "+time);
             }
             */
 
-            for(var i in arrUrls) {
-                var url = arrUrls[i];
-                var color = arrColors[i];
+            for(var i in arrUrlGpxTrack) {
+                var url = arrUrlGpxTrack[i];
+                var color = arrColor[i];
 
                 var lgpx = new OpenLayers.Layer.Vector("", {
                     strategies: [new OpenLayers.Strategy.Fixed()],
@@ -114,7 +114,19 @@ function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrls, arrColors) {
                     projection: new OpenLayers.Projection("EPSG:4326")
                 });
                 map.addLayer(lgpx);
-                console.log("Track url '"+url+"'; color '"+color+"' added to elemId '"+destId+"'");
+                console.log("Track url '"+url+"'; color '"+color+"' added to elemId '"+mapId+"'");
+            }
+
+            var detailId = 'detailContainer';
+            $('#'+detailId).html('');
+            for(var i in arrUrlDetail) {
+                var url = arrUrlDetail[i];
+
+                var id = 'detailValues'+i;
+                $('#'+detailId).append('<div class="detailValues" id="'+id+'"></div>');
+                $('#'+id).load(url, function() {
+                    console.log("Detail url '"+url+"' appened to elemId '"+detailId+"'");
+                });
             }
 
         });
