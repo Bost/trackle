@@ -1,10 +1,13 @@
-<div id="{{ detailId }}" style="background-color: {{ color }}; color : white;">{{ filename }}</div>
-<div>{{ waypoints }}</div>
-<div>{{ speed_avrg }}</div>
-<div>{{ duration }}</div>
-<div>{{ distance }}</div>
-<div>{{ speed_max }}</div>
-<div>{{ elevation_gain }}</div>
+<div class="valFilename" id="{{ detailId }}" style="background-color: {{ color }};">
+    <input type="checkbox" />
+    {{ filename }}
+</div>
+<div class="detailVal">{{ waypoints }}</div>
+<div class="detailVal">{{ speed_avrg }}</div>
+<div class="detailVal">{{ duration }}</div>
+<div class="detailVal">{{ distance }}</div>
+<div class="detailVal">{{ speed_max }}</div>
+<div class="detailVal">{{ elevation_gain }}</div>
 <!--
 #<div id="timestamp">start on: {{ timestamp }}</div>
 #<div id="location">location: {{ location }}</div>
