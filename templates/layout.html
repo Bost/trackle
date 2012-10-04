@@ -72,22 +72,30 @@
     width: 11.7em;
 }
 .detailValues {
-    width: 21em;
+    width: 22em;
+    padding-left: 0.3em;
 }
-.detailVal, .valFilename {
+.valFilename, .labelFilename {
 /*    padding-left is not needed if the checkbox is in front of the filename */
 /*    padding-left: 0.5em;*/
-    padding-right: 0.5em;
     padding-top: 0.2em;
     padding-bottom: 0.2em;
 }
 .valFilename {
+    padding-right: 0.5em;
     text-align: center;
     border-radius: 0.5em;
     color: white;
 }
+.detailVal, .detailLabel {
+    padding-top: 0.2em;
+}
 .detailVal {
     padding-left: 1.4em;
+}
+.details {
+    height: 100%;
+    padding-top: 0.5em;
 }
 </style>
 
@@ -151,10 +159,12 @@
             closable:                    true    // pane can open & close
         ,    resizable:                    true    // when open, pane can be resized
         ,    slidable:                    true    // when closed, pane can 'slide' open over other panes - closes on mouse-out
+        ,    south__size:                210
+
         ,    livePaneResizing:            true
 
         //    enable state management
-        ,    stateManagement__enabled:    true // automatic cookie load & save enabled by default
+        //,    stateManagement__enabled:    true // automatic cookie load & save enabled by default
 
         ,    showDebugMessages:            true // log and/or display messages from debugging & testing code
 
@@ -164,11 +174,6 @@
         var cookieExists = !$.isEmptyObject( myLayout.readCookie() );
         if (!cookieExists) toggleStateManagement( true, false );
 
-        // 'Reset State' button requires updated functionality in rc29.15+
-        if ($.layout.revision && $.layout.revision >= 0.032915)
-            $('#btnReset').show();
-
-        $(".cbox").button();
      });
 
 function display(lon, lat, url, cboxClass, destId) {
@@ -198,8 +203,11 @@ function display(lon, lat, url, cboxClass, destId) {
 <div class="ui-layout-south">
     <div class="uploadContainer">
         <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
-            <div>Upload GPX file:</div>
-            <input id="file" type="file" name="file" value="Val"/>
+            <div class="upload">
+                Upload GPX file:
+                <input id="file" type="file" name="file" value="Val" accept="" /> 
+                <button id="submit" type="submit" name="submit">Submit</button>
+            </div>
 
             <!--
             <label for="realupload">Upload file: </label>
@@ -209,28 +217,43 @@ function display(lon, lat, url, cboxClass, destId) {
             <input type="file" name="file" id="realupload" class="realupload" onchange="this.form.fakeupload.value = this.value;" />
             -->
 
-            <button id="submit" type="submit" name="submit">Submit</button>
         </form>
-        <div class="ui-widget" id="format">
-            {% for e in entries %}
-            <div>
-                <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '{{ e.cboxId }}', 'cbox', 'details')" class="cbox" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" />
-                <label for="{{ e.cboxId }}">{{ e.bFilename }}</label>
-            </div>
-            {% endfor %}
-        </div>
+        <!--
+           -<div class="ui-widget" id="format">
+           -    {% for e in entries %}
+           -    <div>
+           -        <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '{{ e.cboxId }}', 'cbox', 'details')" class="cbox" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" />
+           -        <label for="{{ e.cboxId }}">{{ e.bFilename }}</label>
+           -    </div>
+           -    {% endfor %}
+           -</div>
+           -->
     </div>
-        <div id="details" style="height:100%">
+        <div id="details" class="details">
             <div class="detailLabels">
-                <div>filename:</div>
-                <div>waypoints:</div>
-                <div>averadge speed {{ speedUnits }}:</div>
-                <div>duration {{ timeUnits }}:</div>
-                <div>distance {{ distanceUnits }}:</div>
-                <div>top speed {{ speedUnits }}:</div>
-                <div>elevation gain {{ elevationUnits }}:</div>
+                <div class="labelFilename">filename:</div>
+                <div class="detailLabel">waypoints:</div>
+                <div class="detailLabel">averadge speed {{ speedUnits }}:</div>
+                <div class="detailLabel">duration {{ timeUnits }}:</div>
+                <div class="detailLabel">distance {{ distanceUnits }}:</div>
+                <div class="detailLabel">top speed {{ speedUnits }}:</div>
+                <div class="detailLabel">elevation gain {{ elevationUnits }}:</div>
             </div>
             <div id="detailContainer">
+            {% for e in entries %}
+                <div class="detailValues" id="detailValues">
+                    <div class="valFilename" id="{{ e.detailId }}" style="background-color: {{ e.color }};">
+                        <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '{{ e.cboxId }}', 'cbox', 'details')" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" class="cbox"/> 
+                        {{ e.filename }}
+                    </div>
+                    <div class="detailVal">{{ e.waypoints }}</div>
+                    <div class="detailVal">{{ e.speed_avrg }}</div>
+                    <div class="detailVal">{{ e.duration }}</div>
+                    <div class="detailVal">{{ e.distance }}</div>
+                    <div class="detailVal">{{ e.speed_max }}</div>
+                    <div class="detailVal">{{ e.elevation_gain }}</div>
+                </div>
+            {% endfor %}
             </div>
         </div>
 </div>

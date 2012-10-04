@@ -125,6 +125,19 @@ class Display(webapp2.RequestHandler):
                 'cboxId' : 'cbox'+str(idx),
                 'detailId' : detailId_prefix+str(idx),
                 'color' : colors[idx],
+
+                'detailId' : detailId_prefix+str(idx),
+                'filename' : td.filename,
+                'timestamp' : 'timestamp',
+                'waypoints' : td.waypoints,
+                'location' : 'location',
+                'speed_avrg' : td.speed_avrg,
+                'duration' : td.duration,
+                'distance' : td.distance,
+                'speed_max' : td.speed_max,
+                'total_ascending' : 'total_ascending',
+                'total_descending' : 'total_descending',
+                'elevation_gain' : (td.elevation_max - td.elevation_min),
             }
             mapEntries.append(mapEntry)
 
@@ -142,6 +155,9 @@ class Display(webapp2.RequestHandler):
             'url_delete' : 'delete',
             'url_download' : 'download',
             'url_details' : 'values',
+            'distanceUnits' : distanceUnits,
+            'elevationUnits' : elevationUnits,
+            'speedUnits' : speedUnits,
         }
         template = jinja_environment.get_template('templates/layout.html')
         s = template.render(templateVals)

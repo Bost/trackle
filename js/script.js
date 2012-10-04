@@ -117,17 +117,19 @@ function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDe
                 console.log("Track url '"+url+"'; color '"+color+"' added to elemId '"+mapId+"'");
             }
 
-            var detailId = 'detailContainer';
-            $('#'+detailId).html('');
-            for(var i in arrUrlDetail) {
-                var url = arrUrlDetail[i];
-
-                var id = 'detailValues'+i;
-                $('#'+detailId).append('<div class="detailValues" id="'+id+'"></div>');
-                $('#'+id).load(url, function() {
-                    console.log("Detail url '"+url+"' appened to elemId '"+detailId+"'");
-                });
-            }
+/*
+ *            var detailId = 'detailContainer';
+ *            $('#'+detailId).html('');
+ *            for(var i in arrUrlDetail) {
+ *                var url = arrUrlDetail[i];
+ *
+ *                var id = 'detailValues'+i;
+ *                $('#'+detailId).append('<div class="detailValues" id="'+id+'"></div>');
+ *                $('#'+id).load(url, function() {
+ *                    console.log("Detail url '"+url+"' appened to elemId '"+detailId+"'");
+ *                });
+ *            }
+ */
 
         });
     });
