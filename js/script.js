@@ -1,26 +1,42 @@
-function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
-
-    jQuery.cachedScript = function(url, options) {
-      // allow user to set any option except for dataType, cache, and url
-      options = $.extend(options || {}, {
-        dataType: "script",
-        cache: true,
-        url: url
-      });
-
-      // Use $.ajax() since it is more flexible than $.getScript
-      // Return the jqXHR object so we can chain callbacks
-      return jQuery.ajax(options);
+function displayTrack(lat, lon) {
+    console.log('WTF displayTrack('+lat+', '+lon+')');
+    var mapOptions = {
+        zoom: 8,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        center: new google.maps.LatLng(lat, lon),
     };
+    var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+}
 
-    // Usage
-    //$.cachedScript("ajax/test.js").done(function(script, textStatus) {
-    //  console.log( textStatus );
-    //});
+jQuery.cachedScript = function(url, options) {
+    // allow user to set any option except for dataType, cache, and url
+    options = $.extend(options || {}, {
+        dataType: "script",
+            cache: true,
+            url: url
+    });
 
-    var openLayers_js = "http://www.openlayers.org/api/OpenLayers.js";
+    // Use $.ajax() since it is more flexible than $.getScript
+    // Return the jqXHR object so we can chain callbacks
+    return jQuery.ajax(options);
+};
+
+function voidFn() {
+    console.log('voidFn() executed');
+}
+
+function loadGoogleAPI(lat, lon) {
+    console.log('WTF loadGoogleAPI()');
+    var openLayers_js = "http://maps.googleapis.com/maps/api/js?key=AIzaSyCMutkjLQVt5qnfN1lXA-7LwM47Lqloveo&sensor=false&callback=voidFn";
     $.cachedScript(openLayers_js).done(function(script, textStatus) {
+        console.log('Loading Google Maps JavaScript API v3: '+textStatus );
+    });
+}
 
+function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
+    var openLayers_js = "http://www.openlayers.org/api/OpenLayers.js";
+    var script = document.createElement("script");
+    $.cachedScript(openLayers_js).done(function(script, textStatus) {
         var openStreetMap_js = "http://www.openstreetmap.org/openlayers/OpenStreetMap.js";
         $.cachedScript(openStreetMap_js).done(function(script, textStatus) {
 

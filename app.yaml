@@ -27,6 +27,10 @@ handlers:
 - url: /pic
   static_dir: pic
 
+- url: /gpx
+  static_files: templates/gpx.html
+  upload: templates
+
 - url: /css
   static_dir: css
 

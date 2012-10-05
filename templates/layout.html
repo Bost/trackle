@@ -149,12 +149,7 @@
     var myLayout;
 
     $(document).ready(function () {
-
-        // this layout could be created with NO OPTIONS - but showing some here just as a sample...
-        // myLayout = $('body').layout(); -- syntax with No Options
-
         myLayout = $('body').layout({
-
         //    reference only - these options are NOT required because 'true' is the default
             closable:                    true    // pane can open & close
         ,    resizable:                    true    // when open, pane can be resized
@@ -167,13 +162,14 @@
         //,    stateManagement__enabled:    true // automatic cookie load & save enabled by default
 
         ,    showDebugMessages:            true // log and/or display messages from debugging & testing code
-
         });
 
         // if there is no state-cookie, then DISABLE state management initially
         var cookieExists = !$.isEmptyObject( myLayout.readCookie() );
-        if (!cookieExists) toggleStateManagement( true, false );
-
+        if (!cookieExists) {
+            toggleStateManagement( true, false );
+        }
+        loadGoogleAPI();
      });
 
 function display(lon, lat, url, cboxClass, destId) {
@@ -189,8 +185,10 @@ function display(lon, lat, url, cboxClass, destId) {
         arrUrlDetailTrack.push(urlDetail);
         arrTrackColors.push(checkedElem.attr('color'));
     });
-    displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
+    //displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
+    displayTrack(lat, lon);
 }
+
     </script>
 
 </head>
@@ -208,26 +206,7 @@ function display(lon, lat, url, cboxClass, destId) {
                 <input id="file" type="file" name="file" value="Val" accept="" /> 
                 <button id="submit" type="submit" name="submit">Submit</button>
             </div>
-
-            <!--
-            <label for="realupload">Upload file: </label>
-            <div class="fakeupload">
-                <input type="text" name="fakeupload" /> #!== browse button is here as background ==#
-            </div>
-            <input type="file" name="file" id="realupload" class="realupload" onchange="this.form.fakeupload.value = this.value;" />
-            -->
-
         </form>
-        <!--
-           -<div class="ui-widget" id="format">
-           -    {% for e in entries %}
-           -    <div>
-           -        <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '{{ e.cboxId }}', 'cbox', 'details')" class="cbox" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" />
-           -        <label for="{{ e.cboxId }}">{{ e.bFilename }}</label>
-           -    </div>
-           -    {% endfor %}
-           -</div>
-           -->
     </div>
         <div id="details" class="details">
             <div class="detailLabels">
