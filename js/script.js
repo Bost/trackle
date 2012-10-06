@@ -1,14 +1,46 @@
-function displayTrack(lat, lon) {
+function Google_displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
     console.log('WTF displayTrack('+lat+', '+lon+')');
     var mapOptions = {
-        zoom: 8,
+        zoom: zoom,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         center: new google.maps.LatLng(lat, lon),
     };
     var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    for (var i in arrUrlGpxTrack) {
+        var url = arrUrlGpxTrack[i];
+        var color = arrColor[i];
+        console.log("Track url '"+url+"'; color '"+color+"'");
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "xml",
+            success: function(xml) {
+                var points = [];
+                var bounds = new google.maps.LatLngBounds ();
+                $(xml).find("trkpt").each(function() {
+                    var lat = $(this).attr("lat");
+                    var lon = $(this).attr("lon");
+                    var p = new google.maps.LatLng(lat, lon);
+                    points.push(p);
+                    bounds.extend(p);
+                });
+
+                var poly = new google.maps.Polyline({
+                    // use your own style here
+                    path: points,
+                    strokeColor: color,
+                    strokeOpacity: .7,
+                    strokeWeight: 4
+                });
+                poly.setMap(map);
+                //map.fitBounds(bounds); // fit bounds to track
+            }
+        });
+    }
 }
 
-jQuery.cachedScript = function(url, options) {
+
+$.cachedScript = function(url, options) {
     // allow user to set any option except for dataType, cache, and url
     options = $.extend(options || {}, {
         dataType: "script",
@@ -18,12 +50,12 @@ jQuery.cachedScript = function(url, options) {
 
     // Use $.ajax() since it is more flexible than $.getScript
     // Return the jqXHR object so we can chain callbacks
-    return jQuery.ajax(options);
+    return $.ajax(options);
 };
 
-function voidFn() {
-    console.log('voidFn() executed');
-}
+
+function voidFn() { console.log('voidFn() executed'); }
+
 
 function loadGoogleAPI(lat, lon) {
     console.log('WTF loadGoogleAPI()');
@@ -33,7 +65,8 @@ function loadGoogleAPI(lat, lon) {
     });
 }
 
-function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
+
+function Open_displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
     var openLayers_js = "http://www.openlayers.org/api/OpenLayers.js";
     var script = document.createElement("script");
     $.cachedScript(openLayers_js).done(function(script, textStatus) {
@@ -41,29 +74,6 @@ function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDe
         $.cachedScript(openStreetMap_js).done(function(script, textStatus) {
 
             var map; //complex object of type OpenLayers.Map
-
-            // Add the Layer with the GPX Track
-            function myFn(arr, color) {
-                for(var i in arr) {
-                    if (i >= colors.length) {
-                        console.error("Cannot display more than "+arr.length+" tracks");
-                        break;
-                    }
-                    var url = arr[i];
-                    console.log("trackIdx: "+i+"; url: "+url+"; color: "+color);
-
-                    var lgpx = new OpenLayers.Layer.Vector("", {
-                        strategies: [new OpenLayers.Strategy.Fixed()],
-                        protocol: new OpenLayers.Protocol.HTTP({
-                            url: url,
-                            format: new OpenLayers.Format.GPX()
-                        }),
-                        style: {strokeColor: color, strokeWidth: 5, strokeOpacity: 0.7},
-                        projection: new OpenLayers.Projection("EPSG:4326")
-                    });
-                    map.addLayer(lgpx);
-                }
-            }
 
             var mapId = 'map';
             $('#'+mapId).html('');
@@ -120,6 +130,7 @@ function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDe
                 var url = arrUrlGpxTrack[i];
                 var color = arrColor[i];
 
+                // Add the Layer with the GPX Track
                 var lgpx = new OpenLayers.Layer.Vector("", {
                     strategies: [new OpenLayers.Strategy.Fixed()],
                     protocol: new OpenLayers.Protocol.HTTP({
