@@ -6,7 +6,6 @@ function loadAPI(lat, lon) {
 }
 
 function getMap(cntGpsPositions, lon, lat, zoom) {
-    console.log('WTF displayTrack('+lat+', '+lon+')');
     var mapOptions = {
         zoom: zoom,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -47,7 +46,6 @@ function displayTrack(url, color, map) {
 }
 
 function displayTracks(cntGpsPositions, lon, lat, zoom, arrUrlGpxTrack, arrUrlDetail, arrColor) {
-    console.log('WTF displayTrack('+lat+', '+lon+')');
     var mapOptions = {
         zoom: zoom,
         mapTypeId: google.maps.MapTypeId.ROADMAP,

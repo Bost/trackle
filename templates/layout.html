@@ -104,8 +104,8 @@
     <script type="text/javascript" src="js/jquery-ui-latest.js"></script>
     <script type="text/javascript" src="js/jquery.layout-latest.js"></script>
 
-<!--<script type="text/javascript" src="js/googleAPI.js"></script>-->
-<script type="text/javascript" src="js/openAPI.js"></script>
+<script type="text/javascript" src="js/googleAPI.js"></script>
+<!--<script type="text/javascript" src="js/openAPI.js"></script>-->
 <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
 
     <script type="text/javascript">
@@ -176,15 +176,42 @@
             toggleStateManagement( true, false );
         }
         loadAPI();    // TODO do not call loadGoogleAPI if using openAPI
+
+
+        $('.cbox').click(function(e){
+            e.stopPropagation();
+            var i = this.id;
+            var t = $(this);
+            var lon = t.attr('lon');
+            var lat = t.attr('lat');
+            var url = '"'+t.attr('url')+'"';
+            var cls = t.attr('class');
+            var dest = '"'+t.attr('dest')+'"';
+
+            display(lon, lat, url, cls, dest);
+            //console.log('clicked: ',i, ' checked: ', t.prop('checked'));
+        });
+        $('.valFilename').click(function(e){
+            e.stopPropagation();
+            var c = $(this).children(':first');
+            //console.log('c: ',c);
+            c.prop('checked', true);
+            c.click();
+            c.prop('checked', true);
+        });
+
      });
 
 function display(lon, lat, url, cboxClass, destId) {
+    //console.log(lon, lat, url, cboxClass, destId);
     var arrUrlGpxTrack = new Array();
     var arrUrlDetailTrack = new Array();
     var arrTrackColors = new Array();
 
-    $("."+cboxClass+":checked").each(function(){
+    var selector = "."+cboxClass+":checked";
+    $(selector).each(function(){
         checkedElem = $(this);
+        //console.log('$('+selector+')');
         var urlGpxTrack = '/gpxtrack/'+checkedElem.attr('bkey');
         var urlDetail = '/details/'+checkedElem.attr('bkey');
         arrUrlGpxTrack.push(urlGpxTrack);
@@ -208,7 +235,7 @@ function display(lon, lat, url, cboxClass, destId) {
         <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
             <div class="upload">
                 Upload GPX file:
-                <input id="file" type="file" name="file" value="Val" accept="" /> 
+                <input id="file" type="file" name="file" value="Val" accept="" />
                 <button id="submit" type="submit" name="submit">Submit</button>
             </div>
         </form>
@@ -227,7 +254,7 @@ function display(lon, lat, url, cboxClass, destId) {
             {% for e in entries %}
                 <div class="detailValues" id="detailValues">
                     <div class="valFilename" id="{{ e.detailId }}" style="background-color: {{ e.color }};">
-                        <input type="checkbox" color="{{ e.color }}" onclick="display({{ e.lon }}, {{ e.lat }}, '{{ e.cboxId }}', 'cbox', 'details')" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" class="cbox"/> 
+                        <input type="checkbox" color="{{ e.color }}" lon="{{ e.lon }}" lat="{{ e.lat }}" url="{{ e.cboxId }}" dest="details" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" class="cbox"/>
                         {{ e.filename }}
                     </div>
                     <div class="detailVal">{{ e.waypoints }}</div>
