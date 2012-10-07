@@ -104,8 +104,8 @@
     <script type="text/javascript" src="js/jquery-ui-latest.js"></script>
     <script type="text/javascript" src="js/jquery.layout-latest.js"></script>
 
-    <script type="text/javascript" src="js/debug.js"></script>
-<script type="text/javascript" src="js/script.js"></script>
+<!--<script type="text/javascript" src="js/googleAPI.js"></script>-->
+<script type="text/javascript" src="js/openAPI.js"></script>
 <link rel="stylesheet" href="css/ui-darkness/jquery-ui-1.8.23.custom.css">
 
     <script type="text/javascript">
@@ -120,30 +120,36 @@
     function toggleStateManagement ( skipAlert, mode ) {
         if (!$.layout.plugins.stateManagement) return;
 
-        var options    = myLayout.options.stateManagement
-        ,    enabled    = options.enabled // current setting
+        var options = myLayout.options.stateManagement;
+        var enabled = options.enabled; // current setting
         ;
         if ($.type( mode ) === "boolean") {
-            if (enabled === mode) return; // already correct
-            enabled    = options.enabled = mode
+            if (enabled === mode) {
+                return; // already correct
+            }
+            enabled = options.enabled = mode
         }
         else
-            enabled    = options.enabled = !enabled; // toggle option
+            enabled = options.enabled = !enabled; // toggle option
 
         if (!enabled) { // if disabling state management...
             myLayout.deleteCookie(); // ...clear cookie so will NOT be found on next refresh
-            if (!skipAlert)
+            if (!skipAlert) {
                 alert( 'This layout will reload as the options specify \nwhen the page is refreshed.' );
+            }
         }
-        else if (!skipAlert)
+        else if (!skipAlert) {
             alert( 'This layout will save & restore its last state \nwhen the page is refreshed.' );
+        }
 
         // update text on button
         var $Btn = $('#btnToggleState'), text = $Btn.html();
-        if (enabled)
+        if (enabled) {
             $Btn.html( text.replace(/Enable/i, "Disable") );
-        else
+        }
+        else {
             $Btn.html( text.replace(/Disable/i, "Enable") );
+        }
     };
 
     var myLayout;
@@ -169,7 +175,7 @@
         if (!cookieExists) {
             toggleStateManagement( true, false );
         }
-        loadGoogleAPI();
+        loadAPI();    // TODO do not call loadGoogleAPI if using openAPI
      });
 
 function display(lon, lat, url, cboxClass, destId) {
@@ -185,8 +191,7 @@ function display(lon, lat, url, cboxClass, destId) {
         arrUrlDetailTrack.push(urlDetail);
         arrTrackColors.push(checkedElem.attr('color'));
     });
-    Google_displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
-    //Open_displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
+    displayTracks(1, lon, lat, 16, arrUrlGpxTrack, arrUrlDetailTrack, arrTrackColors);
 }
 
     </script>
