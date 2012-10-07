@@ -175,7 +175,7 @@
         if (!cookieExists) {
             toggleStateManagement( true, false );
         }
-        loadAPI();    // TODO do not call loadGoogleAPI if using openAPI
+        loadAPI();
 
 
         $('.cbox').click(function(e){
@@ -184,11 +184,10 @@
             var t = $(this);
             var lon = t.attr('lon');
             var lat = t.attr('lat');
-            var url = '"'+t.attr('url')+'"';
             var cls = t.attr('class');
             var dest = '"'+t.attr('dest')+'"';
 
-            display(lon, lat, url, cls, dest);
+            display(lon, lat, cls, dest);
             //console.log('clicked: ',i, ' checked: ', t.prop('checked'));
         });
         $('.valFilename').click(function(e){
@@ -202,16 +201,16 @@
 
      });
 
-function display(lon, lat, url, cboxClass, destId) {
-    //console.log(lon, lat, url, cboxClass, destId);
+function display(lon, lat, cboxClass, destId) {
+    //console.log(lon, lat, cboxClass, destId);
     var arrUrlGpxTrack = new Array();
     var arrUrlDetailTrack = new Array();
     var arrTrackColors = new Array();
 
     var selector = "."+cboxClass+":checked";
+    //console.log('$('+selector+')');
     $(selector).each(function(){
         checkedElem = $(this);
-        //console.log('$('+selector+')');
         var urlGpxTrack = '/gpxtrack/'+checkedElem.attr('bkey');
         var urlDetail = '/details/'+checkedElem.attr('bkey');
         arrUrlGpxTrack.push(urlGpxTrack);
@@ -254,7 +253,7 @@ function display(lon, lat, url, cboxClass, destId) {
             {% for e in entries %}
                 <div class="detailValues" id="detailValues">
                     <div class="valFilename" id="{{ e.detailId }}" style="background-color: {{ e.color }};">
-                        <input type="checkbox" color="{{ e.color }}" lon="{{ e.lon }}" lat="{{ e.lat }}" url="{{ e.cboxId }}" dest="details" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" class="cbox"/>
+                        <input type="checkbox" color="{{ e.color }}" lon="{{ e.lon }}" lat="{{ e.lat }}" dest="details" bkey="{{ e.bKey }}" id="{{ e.cboxId }}" class="cbox"/>
                         {{ e.filename }}
                     </div>
                     <div class="detailVal">{{ e.waypoints }}</div>
