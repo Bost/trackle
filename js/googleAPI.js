@@ -72,5 +72,5 @@ $.cachedScript = function(url, options) {
     return $.ajax(options);
 };
 
-function voidFn() { console.log('voidFn() executed'); }
+function voidFn() { console.log('Callback function executed: voidFn()'); }
 

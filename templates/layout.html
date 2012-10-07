@@ -58,12 +58,21 @@
     font-weight: normal;
     font-size: small;
 }
-.uploadContainer {
-/*
+.details, .detailContainer, .forms, .uploadContainer {
     float: left;
-    border-style: solid;
-*/
 }
+.mapProvider {
+    float: right;
+}
+.forms {
+    width: 99%;
+}
+/*
+.uploadContainer, .mapProvider {
+    width: 75%;
+    border-style: solid;
+}
+*/
 .detailLabels, .detailValues {
     height: 8em;
     float: left;
@@ -187,16 +196,17 @@
             var cls = t.attr('class');
             var dest = '"'+t.attr('dest')+'"';
 
-            display(lon, lat, cls, dest);
             //console.log('clicked: ',i, ' checked: ', t.prop('checked'));
+            display(lon, lat, cls, dest);
         });
         $('.valFilename').click(function(e){
             e.stopPropagation();
             var c = $(this).children(':first');
-            //console.log('c: ',c);
-            c.prop('checked', true);
+            var check = !c.prop('checked');
+            //console.log('c: ',c,' checked: ', check);
+            c.prop('checked', check);
             c.click();
-            c.prop('checked', true);
+            c.prop('checked', check);
         });
 
      });
@@ -230,14 +240,24 @@ function display(lon, lat, cboxClass, destId) {
 </div>
 
 <div class="ui-layout-south">
-    <div class="uploadContainer">
-        <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
-            <div class="upload">
-                Upload GPX file:
-                <input id="file" type="file" name="file" value="Val" accept="" />
-                <button id="submit" type="submit" name="submit">Submit</button>
-            </div>
-        </form>
+    <div class="forms">
+        <div class="uploadContainer">
+            <form action="{{ url_upload_handler }}" method="POST" enctype="multipart/form-data">
+                <div class="upload">
+                    Upload GPX file:
+                    <input id="file" type="file" name="file" value="Val" accept="" />
+                    <button id="submit" type="submit" name="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mapProvider">
+            <form action="">
+                <!--Map provider:-->
+                <!--<input type="radio" name="provider" value="google">Google-->
+                <!--<input type="radio" name="provider" value="openstreet">OpenStreet-->
+            </form>
+        </div>
     </div>
         <div id="details" class="details">
             <div class="detailLabels">
@@ -249,7 +269,7 @@ function display(lon, lat, cboxClass, destId) {
                 <div class="detailLabel">top speed {{ speedUnits }}:</div>
                 <div class="detailLabel">elevation gain {{ elevationUnits }}:</div>
             </div>
-            <div id="detailContainer">
+            <div id="detailContainer" class="detailContainer">
             {% for e in entries %}
                 <div class="detailValues" id="detailValues">
                     <div class="valFilename" id="{{ e.detailId }}" style="background-color: {{ e.color }};">
