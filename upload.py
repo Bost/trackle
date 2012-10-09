@@ -7,6 +7,7 @@ import urllib
 import webapp2
 import jinja2
 
+from google.appengine.api import users
 from dateutil.relativedelta import *
 from dateutil.parser import *
 import datetime
@@ -21,9 +22,6 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 from minixsv import pyxsval
 from genxmlif import GenXmlIfError
-
-doctype = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
-meta_tag = '<meta http-equiv="Content-Type content="text/html;charset=ISO-8859-1" />'
 
 vMaxElevation = 'vMaxElevation'
 vMinElevation = 'vMinElevation'
@@ -93,13 +91,38 @@ class TrackDisplay(db.Model):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        display = Display()
-        s = display.get(undef)
-        self.response.out.write(s)
+        user = users.get_current_user()
+
+        if user:
+            #self.response.out.write('Hello, ' + user.nickname())
+            #self.response.headers['Content-Type'] = 'text/plain'
+            logging.info('Current user: '+user.nickname())
+            display = Display()
+            blob_key = undef
+            s = display.doDisplay(self.request, blob_key)
+            self.response.out.write(s)
+        else:
+            logging.info('The user is not logged in. Redirecting...')
+            url = users.create_login_url(self.request.uri)
+            #url_linktext = 'Login'
+            #greeting = ("<a href=\"%s\">Sign in or register</a>." % users.create_login_url("/"))
+            #self.response.out.write("<html><body>%s</body></html>" % greeting)
+            self.redirect(url)
+
 
 # TODO Display should consist of displayMap and displayDetails
 class Display(webapp2.RequestHandler):
     def get(self, blob_key):
+        self.doDisplay(self.request, blob_key)
+
+    def doDisplay(self, request, blob_key):
+        user = users.get_current_user()
+        if not user:
+            logging.error('---------> The user is not logged in. This should not happen :-(')
+            url = users.create_login_url(request.uri)
+            url_linktext = 'Login'
+            self.redirect(url)
+
         logging.info('Display <')
         uploadHandlerUrl = blobstore.create_upload_url('/upload_handler')
         all_blobs = blobstore.BlobInfo.all()
@@ -145,9 +168,14 @@ class Display(webapp2.RequestHandler):
         #sortedMapEntries = sorted(mapEntries, key=lambda a_entry: a_entry['time'])
 
         #logging.info('mapEntries: '+ str(sortedMapEntries))
+        url = users.create_logout_url(request.uri)
+        url_linktext = 'Logout'
+        nickname = user.nickname()
+        #self.response.headers['Content-Type'] = 'text/plain'
         templateVals = {
-            'doctype' : doctype,
-            'meta_tag' : meta_tag,
+            'url' : url,
+            'url_linktext' : url_linktext,
+            'user_nickname' : nickname,
             'url_upload_handler' : uploadHandlerUrl,
             'all_blobs' : all_blobs,
             'entries' : sortedMapEntries,
@@ -166,6 +194,7 @@ class Display(webapp2.RequestHandler):
             return s
         else:
             self.response.out.write(s)
+
 
 
 class TrackValuesCalculator(webapp2.RequestHandler):

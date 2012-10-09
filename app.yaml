@@ -10,50 +10,68 @@ libraries:
   version: latest
 
 handlers:
+- url: /_ah/login_required
+  script: do_openid_login.app
+
 - url: /pic
   static_dir: pic
+  login: required
 
 - url: /css
   static_dir: css
+  login: required
 
 - url: /js
   static_dir: js
+  login: required
 
 - url: /maplayer/.*
   script: gps.app
+  login: required
 
 - url: /gpxtrack/.*
   script: gps.app
+  login: required
 
 ####
 - url: /track/pic
   static_dir: pic
+  login: required
 
 - url: /track/css
   static_dir: css
+  login: required
 
 - url: /track/js
   static_dir: js
+  login: required
 
 - url: /track/.*
   script: upload.app
+  login: required
 ####
 
 - url: /details/[^/]+?show=true|false
   script: upload.app
+  login: required
 
 - url: /details/.*
   script: upload.app
+  login: required
 
 - url: /download/.*
   script: upload.app
+  login: required
 
 - url: /delete/.*
   script: upload.app
+  login: required
 
 - url: /servefile/.*
   script: upload.app
+  login: required
 
 - url: /.*
   script: upload.app
+  login: required
 
